@@ -1,0 +1,24 @@
+/* File: main.c */
+/* Author: LeonLi */
+/* Date: Fri May 14 14:24:22 CST 2021 */
+
+// Include
+#include "common.h"
+#include "protocol_communicate.h"
+
+static const unsigned char TestDataBindCommand[31] =
+{
+    0x88,   //设置请求帧头类型 0x88 // 1
+    0x00,0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x09,0x0a,0x0b,    //接收端唯一标识 UUID // 12
+    0x00,   //加密标识 不加密 // 1
+    0x10,   //协议版本 1.0 // 1
+    0x0d,   //帧体长度 // 1
+    0x09,   //帧体功能码  0x09 绑定锁控 // 1 //CRC 计算范围
+    0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x09,0x0a,0x0b,0x0c,    //锁控单片机UUID // 12 //CRC 计算范围
+    0x74,0x48   // CRC16 // 2
+};
+
+void main(void)
+{
+    ProtocolDataParse(TestDataBindCommand, 31);
+}
