@@ -11,15 +11,10 @@
 
 // Macro
 #define PROTOCOL_DATA_BUFFER_LENGTH 128
-#define PROTOCOL_DATA_MAX_SIZE  64
-#define PROTOCOL_DATA_MIN_SIZE  19
-#define FRAME_HEADER_LENGTH 16
-#define UUID_LENGTH 12
-#define CRC_DATA_LENGTH 2
 
 // Functions
 
-bool ProtocolDataParse(unsigned char *DataBuff, unsigned char DataLength)
+char  ProtocolDataParse(unsigned char *DataBuff, unsigned char DataLength)
 {
     unsigned char EncryptedFlag     = 0;
     unsigned char ProtocolVersion   = 0;
@@ -33,7 +28,7 @@ bool ProtocolDataParse(unsigned char *DataBuff, unsigned char DataLength)
     if((DataLength < PROTOCOL_DATA_MIN_SIZE) || (DataLength > PROTOCOL_DATA_MAX_SIZE))
     {
         printf("Error: Protocol receive data length %d error ! \n\r", DataLength);
-        return false;
+        return -1;
     }
 
     /* ======================================================================================== */
@@ -42,7 +37,7 @@ bool ProtocolDataParse(unsigned char *DataBuff, unsigned char DataLength)
     if((DataBuff[ProcessDataIndex] < SETTING_REQUEST) || (DataBuff[ProcessDataIndex] > STATUS_ACK))
     {
         printf("Error: Protocol receive data header type %d error ! \n\r", DataBuff[ProcessDataIndex]);
-        return false;
+        return -1;
     }
     ProcessDataIndex++;
 
@@ -66,7 +61,7 @@ bool ProtocolDataParse(unsigned char *DataBuff, unsigned char DataLength)
             printf("Debug: UUID[%d] = 0x%X : DataBuff[%d] = 0x%X .\n\r" , i, UUID[i], i, DataBuff[1+i]);
         }
 #endif
-        return false;
+        return -1;
     }
     ProcessDataIndex += UUID_LENGTH;
 
@@ -81,6 +76,7 @@ bool ProtocolDataParse(unsigned char *DataBuff, unsigned char DataLength)
 
     // Calculate CRC
 //#ifdef DEBUG_TEST_FLAG
+//    printf("%s - (line:%d)\n",__FILE__,__LINE__);
 //    HexDump(&DataBuff[ProcessDataIndex], DataLength - CRC_DATA_LENGTH - FRAME_HEADER_LENGTH);
 //#endif
     CalculateCrcValue = Crc16_CCITT(&DataBuff[ProcessDataIndex], DataLength - CRC_DATA_LENGTH - FRAME_HEADER_LENGTH);
@@ -96,9 +92,9 @@ bool ProtocolDataParse(unsigned char *DataBuff, unsigned char DataLength)
 #ifdef DEBUG_TEST_FLAG
         printf("Debug: Calculate Crc = 0x%X : Receive CRC = 0x%X .\n\r" , CalculateCrcValue, ReceiveCrcValue);
 #endif
-        return false;
+        return -1;
     }
 
     // Call frame body parse function
-    return ProtocolParse(&DataBuff[FRAME_HEADER_LENGTH], FrameBody_Length);
+    return ProtocolBodyParse(&DataBuff[FRAME_HEADER_LENGTH], FrameBody_Length, DataBuff[0]);
 }

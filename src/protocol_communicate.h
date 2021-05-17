@@ -7,5 +7,8 @@
 // Include
 #include <stdbool.h>
 
+// Functions
+char  ProtocolDataParse(unsigned char *DataBuff, unsigned char DataLength);
+
 
 #endif

@@ -10,6 +10,20 @@
 // Macro
 #define PROTOCOL_VERSION 0x10
 
+#define PROTOCOL_BODY_COMMAND_REGISTER_MAX_NUM   30
+
+#define PROTOCOL_BODY_LENGTH 47
+
+#define PROTOCOL_HEADER_TYPE_LENGTH 1
+
+#define PROTOCOL_DATA_MAX_SIZE  64
+
+#define PROTOCOL_DATA_MIN_SIZE  19
+
+#define FRAME_HEADER_LENGTH 16
+
+#define CRC_DATA_LENGTH 2
+
 // Global variables
 //unsigned char software_version          = 0;
 //unsigned char heart_beat_time_interval  = 5;    //seconds
@@ -52,9 +66,18 @@ enum SealStatus{
 // Struct
 typedef struct
 {
-    enum CommandCode FrameBody_CommandCode;                                         //explanation code
-    bool            (*FrameBody_CommandCodeReadFunction)(void*);                    //read function point
-    bool            (*FrameBody_CommandCodeWriteFunction)(void*, unsigned long);    //write function point
-}FrameBody_ReadWriteFunctionPointStruct;
+    enum    CommandCode FrameBody_CommandCode;                              //protocol command code
+    char     (*FrameBody_CommandCodeReadFunction)(void*);                    //read function point
+    char     (*FrameBody_CommandCodeWriteFunction)(void*, unsigned long);    //write function point
+}ProtocolBodyCommandReadWriteFunctionPointStruct;
+
+static ProtocolBodyCommandReadWriteFunctionPointStruct ProtocolBodyCommandReadWriteFunctionRegisterArray[PROTOCOL_BODY_COMMAND_REGISTER_MAX_NUM];
+
+// Functions
+void ProtocolBodyCommandReadWriteFunctionRegister(void);
+
+char  ProtocolBodyParse(unsigned char* DataBuff, unsigned char DataLength, unsigned char HeaderType);
+
+char  SubProtocolBodyParseSettingRequest(unsigned char* DataBuff, unsigned char DataLength);
 
 #endif

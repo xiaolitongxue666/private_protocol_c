@@ -5,9 +5,12 @@
 #define _COMMON_H_
 
 #include <stdio.h>
+#include<string.h>
 
 // Macro
 #define DEBUG_TEST_FLAG
+
+#define UUID_LENGTH 12
 
 void HexDump(const char* buf, int len);
 
