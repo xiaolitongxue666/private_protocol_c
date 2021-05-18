@@ -333,7 +333,64 @@ void ProtocolFrameBodyCommandCodeWriteAndReadFunctionRegister(void)
 }
 
 // Construct protocol data
-char ConstructProtocolFrameData(unsigned char* ProtocolFrameBodyData, unsigned char ProtocolFrameBodyDataLength, unsigned char ProtocolFrameHeadType)
+char ConstructRequestProtocolFrameData(unsigned char* ProtocolFrameData, unsigned char ProtocolFrameDataLength,unsigned char* ProtocolFrameBodyData, unsigned char ProtocolFrameBodyDataLength, unsigned char ProtocolFrameHeadType)
+{
+    unsigned char ConstructProtocolFrameDataCount = 0;
+    char Result = -1;
+
+    // Protocol frame data length
+    if((ProtocolFrameDataLength < 0) || (ProtocolFrameDataLength > PROTOCOL_FRAME_MAX_LENGTH)){
+        printf("Error: Construct protocol frame data length %d error ! \n\r", ProtocolFrameDataLength);
+        return Result;
+    }
+
+    // Header type
+    if((ProtocolFrameHeadType < SETTING_REQUEST) || (ProtocolFrameHeadType > STATUS_ACK)){
+        printf("Error: Construct protocol frame header type %d error ! \n\r", ProtocolFrameHeadType);
+        return Result;
+    }
+    ProtocolFrameData[ConstructProtocolFrameDataCount++] = ProtocolFrameHeadType;
+    // Send to UUID
+    //TODO: Use MCU hal lib get the real uuid
+    memcpy(ProtocolFrameData + ConstructProtocolFrameDataCount, BranchLock_UUID, UUID_LENGTH);
+    ConstructProtocolFrameDataCount += UUID_LENGTH;
+
+    // 加密标识
+    ProtocolFrameData[ConstructProtocolFrameDataCount++] = 0x00;
+
+    // 协议版本
+    ProtocolFrameData[ConstructProtocolFrameDataCount++] = PROTOCOL_VERSION;
+
+    // 帧体长度
+    ProtocolFrameData[ConstructProtocolFrameDataCount++] = ProtocolFrameBodyDataLength;
+
+    // Protocol frame body data
+    if((ProtocolFrameBodyDataLength + PROTOCOL_FRAME_HEAD_LENGTH + PROTOCOL_FRAME_TAIL_CRC_LENGTH) >  PROTOCOL_FRAME_MAX_LENGTH)
+    {
+        printf("Error: Construct protocol frame length %d error ! \n\r", ProtocolFrameBodyDataLength);
+        return Result;
+    }
+    memcpy(ProtocolFrameData + ConstructProtocolFrameDataCount, ProtocolFrameBodyData, ProtocolFrameBodyDataLength);
+    ConstructProtocolFrameDataCount += ProtocolFrameBodyDataLength;
+
+    // Construct protocol frame body CRC
+    unsigned short CRC = Crc16_CCITT(ProtocolFrameBodyData, ProtocolFrameBodyDataLength);
+    ProtocolFrameData[ConstructProtocolFrameDataCount++] = CRC >> 8;
+    ProtocolFrameData[ConstructProtocolFrameDataCount++] = CRC & 0x00FF;
+
+    printf("%s - (line:%d) Construct protocol frame body CRC is 0x%X . \n\r", __FILE__, __LINE__, CRC);
+    printf("%s - (line:%d) Protocol frame body length is %d . \n\r", __FILE__, __LINE__, ProtocolFrameBodyDataLength);
+
+#ifdef DEBUG_TEST_FLAG
+    printf("%s - (line:%d)\n",__FILE__,__LINE__);
+    printf("  ------- Construct protocol frame hex dump -------  \n\r");
+    HexDump(ProtocolFrameData, ConstructProtocolFrameDataCount);
+#endif
+
+}
+
+
+char ConstructResponseProtocolFrameData(unsigned char* ProtocolFrameBodyData, unsigned char ProtocolFrameBodyDataLength, unsigned char ProtocolFrameHeadType)
 {
     unsigned char ConstructProtocolFrameDataCount = 0;
     unsigned char ProtocolFrameData[PROTOCOL_FRAME_MAX_LENGTH] = { 0 };
@@ -435,7 +492,7 @@ char ProtocolFrameBodyParseSettingRequest(unsigned char* ProtocolFrameBodyData, 
     HexDump(ConstructProtocolFrameBodyData, ConstructProtocolFrameBodyDataCount);
 #endif
 
-    Result = ConstructProtocolFrameData(ConstructProtocolFrameBodyData, ConstructProtocolFrameBodyDataCount, SETTING_ACK);
+    Result = ConstructResponseProtocolFrameData(ConstructProtocolFrameBodyData, ConstructProtocolFrameBodyDataCount, SETTING_ACK);
 
     return Result;
 }
@@ -471,7 +528,7 @@ char ProtocolFrameBodyParseStatusRequest(unsigned char* ProtocolFrameBodyData, u
     HexDump(ConstructProtocolFrameBodyData, Result);
 #endif
 
-    Result = ConstructProtocolFrameData(ConstructProtocolFrameBodyData, Result, STATUS_ACK);
+    Result = ConstructResponseProtocolFrameData(ConstructProtocolFrameBodyData, Result, STATUS_ACK);
 
     return Result;
 }

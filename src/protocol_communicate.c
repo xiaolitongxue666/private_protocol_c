@@ -20,8 +20,232 @@ extern unsigned char BranchLock_UUID[UUID_LENGTH];
 
 #endif
 
+//AUTHORIZE_STATUS
+char SendReadAuthorizeStatusProtocolFrame(void)
+{
+    unsigned char ProtocolFrameData[PROTOCOL_FRAME_MAX_LENGTH] = { 0 };
+    char Result = -1;
+    unsigned char ProtocolFrameBodyData = AUTHORIZE_STATUS;
 
-char  ProtocolDataParse(unsigned char *DataBuff, unsigned char DataLength)
+    Result = ConstructRequestProtocolFrameData(ProtocolFrameData,
+                                               PROTOCOL_FRAME_MAX_LENGTH,
+                                               &ProtocolFrameBodyData,
+                                               1,
+                                               STATUS_REQUEST);
+    return Result;
+}
+
+char SendWriteAuthorizeStatusProtocolFrame(unsigned AuthorizeStatus)
+{
+    unsigned char ProtocolFrameData[PROTOCOL_FRAME_MAX_LENGTH] = { 0 };
+    char Result = -1;
+    unsigned char ProtocolFrameBodyData[2] = { 0 };
+    ProtocolFrameBodyData[0] = AuthorizeStatus;
+    ProtocolFrameBodyData[1] = Authorize;
+
+
+    Result = ConstructRequestProtocolFrameData(ProtocolFrameData,
+                                               PROTOCOL_FRAME_MAX_LENGTH,
+                                               &ProtocolFrameBodyData,
+                                               2,
+                                               SETTING_REQUEST);
+    return Result;
+}
+
+//LOCK_STATUS
+char SendReadLockStatusProtocolFrame(void)
+{
+    unsigned char ProtocolFrameData[PROTOCOL_FRAME_MAX_LENGTH] = { 0 };
+    char Result = -1;
+    unsigned char ProtocolFrameBodyData = LOCK_STATUS;
+
+    Result = ConstructRequestProtocolFrameData(ProtocolFrameData,
+                                               PROTOCOL_FRAME_MAX_LENGTH,
+                                               &ProtocolFrameBodyData,
+                                               1,
+                                               STATUS_REQUEST);
+    return Result;
+}
+
+char SendWriteLockStatusProtocolFrame(unsigned LockStatus)
+{
+    unsigned char ProtocolFrameData[PROTOCOL_FRAME_MAX_LENGTH] = { 0 };
+    char Result = -1;
+    unsigned char ProtocolFrameBodyData[2] = { 0 };
+    ProtocolFrameBodyData[0] = LOCK_STATUS;
+    ProtocolFrameBodyData[1] = LockStatus;
+
+
+    Result = ConstructRequestProtocolFrameData(ProtocolFrameData,
+                                               PROTOCOL_FRAME_MAX_LENGTH,
+                                               &ProtocolFrameBodyData,
+                                               2,
+                                               SETTING_REQUEST);
+    return Result;
+}
+
+//SEAL_STATUS
+char SendReadSealStatusProtocolFrame(void)
+{
+    unsigned char ProtocolFrameData[PROTOCOL_FRAME_MAX_LENGTH] = { 0 };
+    char Result = -1;
+    unsigned char ProtocolFrameBodyData = SEAL_STATUS;
+
+    Result = ConstructRequestProtocolFrameData(ProtocolFrameData,
+                                               PROTOCOL_FRAME_MAX_LENGTH,
+                                               &ProtocolFrameBodyData,
+                                               1,
+                                               STATUS_REQUEST);
+    return Result;
+}
+
+char SendWriteSealStatusProtocolFrame(unsigned SealStatus)
+{
+    unsigned char ProtocolFrameData[PROTOCOL_FRAME_MAX_LENGTH] = { 0 };
+    char Result = -1;
+    unsigned char ProtocolFrameBodyData[2] = { 0 };
+    ProtocolFrameBodyData[0] = SEAL_STATUS;
+    ProtocolFrameBodyData[1] = SealStatus;
+
+
+    Result = ConstructRequestProtocolFrameData(ProtocolFrameData,
+                                               PROTOCOL_FRAME_MAX_LENGTH,
+                                               &ProtocolFrameBodyData,
+                                               2,
+                                               SETTING_REQUEST);
+    return Result;
+}
+
+//SUB1G_FREQ
+char SendReadSub1GFreqProtocolFrame(void)
+{
+    unsigned char ProtocolFrameData[PROTOCOL_FRAME_MAX_LENGTH] = { 0 };
+    char Result = -1;
+    unsigned char ProtocolFrameBodyData = SUB1G_FREQ;
+
+    Result = ConstructRequestProtocolFrameData(ProtocolFrameData,
+                                               PROTOCOL_FRAME_MAX_LENGTH,
+                                               &ProtocolFrameBodyData,
+                                               1,
+                                               STATUS_REQUEST);
+    return Result;
+}
+
+//BATTERY_POWER
+char SendReadBatteryPowerProtocolFrame(void)
+{
+    unsigned char ProtocolFrameData[PROTOCOL_FRAME_MAX_LENGTH] = { 0 };
+    char Result = -1;
+    unsigned char ProtocolFrameBodyData = BATTERY_POWER;
+
+    Result = ConstructRequestProtocolFrameData(ProtocolFrameData,
+                                               PROTOCOL_FRAME_MAX_LENGTH,
+                                               &ProtocolFrameBodyData,
+                                               1,
+                                               STATUS_REQUEST);
+    return Result;
+}
+
+
+//HEART_BEAT_TIME_INTERVAL
+char SendReadHeartBeatTimeIntervalProtocolFrame(void)
+{
+    unsigned char ProtocolFrameData[PROTOCOL_FRAME_MAX_LENGTH] = { 0 };
+    char Result = -1;
+    unsigned char ProtocolFrameBodyData = HEART_BEAT_TIME_INTERVAL;
+
+    Result = ConstructRequestProtocolFrameData(ProtocolFrameData,
+                                               PROTOCOL_FRAME_MAX_LENGTH,
+                                               &ProtocolFrameBodyData,
+                                               1,
+                                               STATUS_REQUEST);
+    return Result;
+}
+
+char SendWriteHeartBeatTimeIntervalProtocolFrame(unsigned HeartBeatTimeInterval)
+{
+    unsigned char ProtocolFrameData[PROTOCOL_FRAME_MAX_LENGTH] = { 0 };
+    char Result = -1;
+    unsigned char ProtocolFrameBodyData[2] = { 0 };
+    ProtocolFrameBodyData[0] = HEART_BEAT_TIME_INTERVAL;
+    ProtocolFrameBodyData[1] = HeartBeatTimeInterval;
+
+
+    Result = ConstructRequestProtocolFrameData(ProtocolFrameData,
+                                               PROTOCOL_FRAME_MAX_LENGTH,
+                                               &ProtocolFrameBodyData,
+                                               2,
+                                               SETTING_REQUEST);
+    return Result;
+}
+
+//HEART_BEAT_OVERTIME
+char SendReadHeartBeatOverTimeProtocolFrame(void)
+{
+    unsigned char ProtocolFrameData[PROTOCOL_FRAME_MAX_LENGTH] = { 0 };
+    char Result = -1;
+    unsigned char ProtocolFrameBodyData = HEART_BEAT_OVERTIME;
+
+    Result = ConstructRequestProtocolFrameData(ProtocolFrameData,
+                                               PROTOCOL_FRAME_MAX_LENGTH,
+                                               &ProtocolFrameBodyData,
+                                               1,
+                                               STATUS_REQUEST);
+    return Result;
+}
+
+char SendWriteHeartBeatOverTimeProtocolFrame(unsigned HeartBeatOverTime)
+{
+    unsigned char ProtocolFrameData[PROTOCOL_FRAME_MAX_LENGTH] = { 0 };
+    char Result = -1;
+    unsigned char ProtocolFrameBodyData[2] = { 0 };
+    ProtocolFrameBodyData[0] = HEART_BEAT_OVERTIME;
+    ProtocolFrameBodyData[1] = HeartBeatOverTime;
+
+
+    Result = ConstructRequestProtocolFrameData(ProtocolFrameData,
+                                               PROTOCOL_FRAME_MAX_LENGTH,
+                                               &ProtocolFrameBodyData,
+                                               2,
+                                               SETTING_REQUEST);
+    return Result;
+}
+
+//BIND_LOCK_CONTROL
+char SendWriteBindProtocolFrame(unsigned char *Bind_UUID)
+{
+    unsigned char ProtocolFrameData[PROTOCOL_FRAME_MAX_LENGTH] = { 0 };
+    char Result = -1;
+    unsigned char ProtocolFrameBodyData[UUID_LENGTH + 1] = { 0 };
+    ProtocolFrameBodyData[0] = BIND_LOCK_CONTROL;
+    memcpy(&(ProtocolFrameBodyData[1]) , Bind_UUID, UUID_LENGTH);
+
+    Result = ConstructRequestProtocolFrameData(ProtocolFrameData,
+                                               PROTOCOL_FRAME_MAX_LENGTH,
+                                               &ProtocolFrameBodyData,
+                                               UUID_LENGTH + 1,
+                                               SETTING_REQUEST);
+    return Result;
+}
+
+//UNBIND_LOCK_CONTROL
+char SendWriteUnBindProtocolFrame(unsigned char *UnBind_UUID)
+{
+    unsigned char ProtocolFrameData[PROTOCOL_FRAME_MAX_LENGTH] = { 0 };
+    char Result = -1;
+    unsigned char ProtocolFrameBodyData[UUID_LENGTH + 1] = { 0 };
+    ProtocolFrameBodyData[0] = UNBIND_LOCK_CONTROL;
+    memcpy(&(ProtocolFrameBodyData[1]) , UnBind_UUID, UUID_LENGTH);
+
+    Result = ConstructRequestProtocolFrameData(ProtocolFrameData,
+                                               PROTOCOL_FRAME_MAX_LENGTH,
+                                               &ProtocolFrameBodyData,
+                                               UUID_LENGTH + 1,
+                                               SETTING_REQUEST);
+    return Result;
+}
+
+char ProtocolDataParse(unsigned char *DataBuff, unsigned char DataLength)
 {
     unsigned char EncryptedFlag     = 0;
     unsigned char ProtocolVersion   = 0;

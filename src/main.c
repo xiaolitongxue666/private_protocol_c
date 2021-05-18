@@ -20,6 +20,10 @@ void main(void)
     //    Authorize =      0x00,
     //    Unauthorized //  0x01
     //};
+
+    //use
+    //SendWriteAuthorizeStatusProtocolFrame(AUTHORIZE_STATUS);
+    //or
     unsigned char TestDataAuthorizeSettingCommand[20] =
             {
                     SETTING_REQUEST,   //设置请求帧头类型 0x88 // 1
@@ -32,6 +36,9 @@ void main(void)
                     0x20,0x00   // CRC16 // 2
             };
 
+    // use
+    //SendReadAuthorizeStatusProtocolFrame();
+    // or
     unsigned char TestDataAuthorizeStatusCommand[19] =
             {
                     STATUS_REQUEST,   //设置请求帧头类型 0x8a // 1
@@ -49,6 +56,10 @@ void main(void)
     //  LOCK =      0x00,
     //  UNLOCK  //  0x01
     //};
+
+    //use
+    //SendWriteLockStatusProtocolFrame(Lock);
+    //or
     unsigned char TestDataLockSettingCommand[20] =
     {
         SETTING_REQUEST,   //设置请求帧头类型 0x88 // 1
@@ -57,10 +68,13 @@ void main(void)
         0x10,   //协议版本 1.0 // 1
         0x02,   //帧体长度 // 1
         LOCK_STATUS,   //帧体功能码  LOCK_STATUS  // 1 //CRC 计算范围
-        Seal,    //心跳包超时时间 // 1 //CRC 计算范围
+        Lock,    //心跳包超时时间 // 1 //CRC 计算范围
         0xd0,0x00   // CRC16 // 2
     };
 
+    //use
+    //SendReadLockStatusProtocolFrame();
+    //or
     unsigned char TestDataLockStatusCommand[19] =
     {
         STATUS_REQUEST,   //设置请求帧头类型 0x8a // 1
@@ -78,6 +92,10 @@ void main(void)
     //    Seal =      0x00,
     //    Unseal //   0x01
     //};
+
+    //use
+    //SendWriteSealStatusProtocolFrame(Seal);
+    //or
     unsigned char TestDataSealSettingCommand[20] =
     {
         SETTING_REQUEST,   //设置请求帧头类型 0x88 // 1
@@ -90,6 +108,9 @@ void main(void)
         0x40,0x01   // CRC16 // 2
     };
 
+    //use
+    //SendReadSealStatusProtocolFrame();
+    //or
     unsigned char TestDataSealStatusCommand[19] =
     {
         STATUS_REQUEST,   //设置请求帧头类型 0x8a // 1
@@ -102,6 +123,10 @@ void main(void)
     };
 
     //SUB1G_FREQ
+
+    //use
+    //SendReadSub1GFreqProtocolFrame();
+    //or
     unsigned char TestDataSub1GFreqStatusCommand[19] =
     {
         STATUS_REQUEST,   //设置请求帧头类型 0x8a // 1
@@ -114,6 +139,10 @@ void main(void)
     };
 
     //BATTERY_POWER
+
+    //use
+    //SendReadBatteryPowerProtocolFrame();
+    //or
     unsigned char TestDataBatteryPowerStatusCommand[19] =
     {
         STATUS_REQUEST,   //设置请求帧头类型 0x8a // 1
@@ -126,6 +155,10 @@ void main(void)
     };
 
     //HEART_BEAT_TIME_INTERVAL
+
+    //use
+    //SendWriteHeartBeatTimeIntervalProtocolFrame(5);
+    //or
     unsigned char TestDataHeartBeatTimeIntervalSettingCommand[20] =
     {
         SETTING_REQUEST,   //设置请求帧头类型 0x88 // 1
@@ -138,6 +171,9 @@ void main(void)
         0x13,0xc2   // CRC16 // 2
     };
 
+    //use
+    //SendReadHeartBeatTimeIntervalProtocolFrame();
+    //or
     unsigned char TestDataHeartBeatTimeIntervalStatusCommand[19] =
     {
         STATUS_REQUEST,   //设置请求帧头类型 0x8a // 1
@@ -174,6 +210,10 @@ void main(void)
     };
 
     //BIND_LOCK_CONTROL
+    //use
+    //unsigned char Bind_UUID[UUID_LENGTH] = {0x00,0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x09,0x0a,0x0b};
+    //SendWriteBindProtocolFrame(Bind_UUID);
+    //or
     unsigned char TestDataBindSettingCommand[31] =
     {
         SETTING_REQUEST,   //设置请求帧头类型 0x88 // 1
@@ -187,6 +227,10 @@ void main(void)
     };
 
     //UNBIND_LOCK_CONTROL
+    //use
+    unsigned char UnBind_UUID[UUID_LENGTH] = {0x00,0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x09,0x0a,0x0b};
+    SendWriteUnBindProtocolFrame(UnBind_UUID);
+    //or
     unsigned char TestDataUnBindSettingCommand[31] =
     {
         SETTING_REQUEST,   //设置请求帧头类型 0x88 // 1
@@ -199,12 +243,12 @@ void main(void)
         0x74,0x48   // CRC16 // 2
     };
 
-    printf("AUTHORIZE_STATUS======================================================================= \n\r");
+    //printf("AUTHORIZE_STATUS======================================================================= \n\r");
     //AUTHORIZE_STATUS
     //Setting
     //ProtocolDataParse(TestDataAuthorizeSettingCommand, 20);
     //Status
-    ProtocolDataParse(TestDataAuthorizeStatusCommand, 19);
+    //ProtocolDataParse(TestDataAuthorizeStatusCommand, 19);
 
     //printf("LOCK_STATUS======================================================================= \n\r");
     //LOCK_STATUS
