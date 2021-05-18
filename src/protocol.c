@@ -6,125 +6,273 @@
 #include "common.h"
 #include "protocol.h"
 
+// Global variables
+#ifdef DEBUG_TEST_FLAG
+unsigned char LockControl_UUID[UUID_LENGTH] = {0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x09,0x0a,0x0b,0x0c};
+#else
+unsigned char LockControl_UUID[UUID_LENGTH] = {0};
+#endif
+
+#ifdef DEBUG_TEST_FLAG
+unsigned char BranchLock_UUID[UUID_LENGTH] = {0x00,0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x09,0x0a,0x0b};
+#else
+unsigned char BranchLock_UUID[UUID_LENGTH] = {0};
+#endif
+
+
 // Register protocol command
-char  ProtocolBodyCommandRegister(   enum    CommandCode ParaCode,
-                                    void*   ParaReadFunction,
-                                    void*   ParaWriteFunction)
+char  ProtocolBodyCommandRegister(  enum    ProtocolFrameBodyCommandCodeEnum ProtocolFrameBodyCommandCode,
+                                    void*   ProtocolFrameBodyCommandCodeReadFunctionPoint,
+                                    void*   ProtocolFrameBodyCommandCodeWriteFunctionPoint)
 {
     unsigned char i;
     char  Result = 0;
 
-    for(i = 0; i < PROTOCOL_BODY_COMMAND_REGISTER_MAX_NUM; ++i)
+    for(i = 0; i < PROTOCOL_FRAME_BODY_COMMAND_REGISTER_MAX_NUM; ++i)
     {
-        if(ProtocolBodyCommandReadWriteFunctionRegisterArray[i].FrameBody_CommandCode == 0)//not register
+        if(ProtocolFrameBodyCommandCodeWriteAndReadFunctionRegisterArray[i].ProtocolFrameBodyCommandCode == 0)//not register
         {
-            ProtocolBodyCommandReadWriteFunctionRegisterArray[i].FrameBody_CommandCode              = ParaCode;
-            ProtocolBodyCommandReadWriteFunctionRegisterArray[i].FrameBody_CommandCodeReadFunction  = ParaReadFunction;
-            ProtocolBodyCommandReadWriteFunctionRegisterArray[i].FrameBody_CommandCodeWriteFunction = ParaWriteFunction;
-            Result = 1;
+            ProtocolFrameBodyCommandCodeWriteAndReadFunctionRegisterArray[i].ProtocolFrameBodyCommandCode                   = ProtocolFrameBodyCommandCode;
+            ProtocolFrameBodyCommandCodeWriteAndReadFunctionRegisterArray[i].ProtocolFrameBodyCommandCodeReadFunctionPoint  = ProtocolFrameBodyCommandCodeReadFunctionPoint;
+            ProtocolFrameBodyCommandCodeWriteAndReadFunctionRegisterArray[i].ProtocolFrameBodyCommandCodeWriteFunctionPoint = ProtocolFrameBodyCommandCodeWriteFunctionPoint;
+            Result = 0;
             break;
         }
     }
 
-    if(i == PROTOCOL_BODY_COMMAND_REGISTER_MAX_NUM)
+    if(i == PROTOCOL_FRAME_BODY_COMMAND_REGISTER_MAX_NUM)
     {
-        printf("Para register failed at(0x%04x)\n", ParaCode);
+        printf("Protocol body command code 0x%X register error !\n", ProtocolFrameBodyCommandCode);
     }
     return Result;
 }
 
 // Command functions
-//BATTERY_POWER
-char  ProtocolBodyBatteryPowerStatus(unsigned char* DataBuffer)
+//AUTHORIZE_STATUS
+char ProtocolFrameBodyAuthorizeRead(unsigned char* ProtocolFrameBodyDataBuffer)
 {
-    unsigned char BatteryPower = 0;
-    unsigned char ConstructBodyDataIndex = 0;
+    unsigned char AuthorizeStatus = 0;
+    unsigned char ConstructProtocolFrameBodyDataCount = 0;
 
-    //if(DataLength > 1)
-    //{
-    //    printf("Error: BATTERY_POWER command length %d error, should be %d . \n\r", DataLength, 1);
-    //    return -1;
-    //}
+    //TODO: Read battery status function
+    AuthorizeStatus = Authorize;//Test
+    printf("%s - (line:%d) Seal status is [%s] .\n\r" , __FILE__, __LINE__, AuthorizeStatus>0?"Unauthorized":"Authorize");
 
-    //TODO: Get battery status function
-    BatteryPower = 90;//Test
+    ProtocolFrameBodyDataBuffer[ConstructProtocolFrameBodyDataCount++] = AUTHORIZE_STATUS;
+    ProtocolFrameBodyDataBuffer[ConstructProtocolFrameBodyDataCount++] = 0x01;
+    ProtocolFrameBodyDataBuffer[ConstructProtocolFrameBodyDataCount++] = AuthorizeStatus;
 
-#ifdef DEBUG_TEST_FLAG
-    printf("Getting battery status is %d s .\n\r" , BatteryPower);
-#endif
-
-    //TODO: Set branch lock heart beat interval to data struct or data base
-
-    //DataBuffer[ConstructBodyDataIndex++] = BATTERY_POWER;
-    DataBuffer[ConstructBodyDataIndex++] = 0x01;
-    DataBuffer[ConstructBodyDataIndex++] = BatteryPower;
-
-    return ConstructBodyDataIndex;
+    return ConstructProtocolFrameBodyDataCount;
 }
 
-
-//HEART_BEAT_TIME_INTERVAL
-char  ProtocolBodyHeartBeatIntervalControl(unsigned char *DataBuffer, unsigned char DataLength)
+char ProtocolFrameBodyAuthorizeWrite(unsigned char *ProtocolFrameBodyDataBuffer, unsigned char ProtocolFrameBodyDataLength)
 {
-    unsigned char HeartBeatInterval = 0;
+    unsigned char AuthorizeStatus = 0;
 
-    if(DataLength > 1)
+    if(ProtocolFrameBodyDataLength > 1)
     {
-        printf("Error: HEART_BEAT_TIME_INTERVAL command length %d error, should be %d . \n\r", DataLength, 1);
+        printf("Error: AUTHORIZE_STATUS command length %d error, should be %d . \n\r", ProtocolFrameBodyDataLength, 1);
         return -1;
     }
 
-    HeartBeatInterval = *DataBuffer;
+    AuthorizeStatus = *ProtocolFrameBodyDataBuffer;
+    printf("Authorize status is [%s] .\n\r" , AuthorizeStatus>0?"Unauthorized":"Authorize");
 
-#ifdef DEBUG_TEST_FLAG
-    printf("Setting branch lock heart beat interval is %d s .\n\r" , HeartBeatInterval);
-#endif
+    //TODO: Write heart beat interval function
 
-    //TODO: Set branch lock heart beat interval to data struct or data base
+    return 0;
+}
+
+//LOCK_STATUS
+char ProtocolFrameBodyLockRead(unsigned char* ProtocolFrameBodyDataBuffer)
+{
+    unsigned char LockStatus = 0;
+    unsigned char ConstructProtocolFrameBodyDataCount = 0;
+
+    //TODO: Read battery status function
+    LockStatus = Lock;//Test
+    printf("%s - (line:%d) Seal status is [%s] .\n\r" , __FILE__, __LINE__, LockStatus>0?"Unlock":"Lock");
+
+    ProtocolFrameBodyDataBuffer[ConstructProtocolFrameBodyDataCount++] = LOCK_STATUS;
+    ProtocolFrameBodyDataBuffer[ConstructProtocolFrameBodyDataCount++] = 0x01;
+    ProtocolFrameBodyDataBuffer[ConstructProtocolFrameBodyDataCount++] = LockStatus;
+
+    return ConstructProtocolFrameBodyDataCount;
+}
+
+char ProtocolFrameBodyLockWrite(unsigned char *ProtocolFrameBodyDataBuffer, unsigned char ProtocolFrameBodyDataLength)
+{
+    unsigned char LockStatus = 0;
+
+    if(ProtocolFrameBodyDataLength > 1)
+    {
+        printf("Error: LOCK_STATUS command length %d error, should be %d . \n\r", ProtocolFrameBodyDataLength, 1);
+        return -1;
+    }
+
+    LockStatus = *ProtocolFrameBodyDataBuffer;
+    printf("Write lock status is [%s] .\n\r" , LockStatus>0?"Unlock":"Lock");
+
+    //TODO: Write heart beat interval function
+
+    return 0;
+}
+
+//SEAL_STATUS
+char ProtocolFrameBodySealRead(unsigned char* ProtocolFrameBodyDataBuffer)
+{
+    unsigned char SealStatus = 0;
+    unsigned char ConstructProtocolFrameBodyDataCount = 0;
+
+    //TODO: Read battery status function
+    SealStatus = Seal;//Test
+    printf("%s - (line:%d) Seal status is [%s] .\n\r" , __FILE__, __LINE__, SealStatus>0?"Unseal":"Seal");
+
+    ProtocolFrameBodyDataBuffer[ConstructProtocolFrameBodyDataCount++] = SEAL_STATUS;
+    ProtocolFrameBodyDataBuffer[ConstructProtocolFrameBodyDataCount++] = 0x01;
+    ProtocolFrameBodyDataBuffer[ConstructProtocolFrameBodyDataCount++] = SealStatus;
+
+    return ConstructProtocolFrameBodyDataCount;
+}
+
+char ProtocolFrameBodySealWrite(unsigned char *ProtocolFrameBodyDataBuffer, unsigned char ProtocolFrameBodyDataLength)
+{
+    unsigned char SealStatus = 0;
+
+    if(ProtocolFrameBodyDataLength > 1)
+    {
+        printf("Error: SEAL_STATUS command length %d error, should be %d . \n\r", ProtocolFrameBodyDataLength, 1);
+        return -1;
+    }
+
+    SealStatus = *ProtocolFrameBodyDataBuffer;
+    printf("Write seal status is [%s] .\n\r" , SealStatus>0?"Unseal":"Seal");
+
+    //TODO: Write heart beat interval function
+
+    return 0;
+}
+
+//SUB1G_FREQ
+char ProtocolFrameBodyCommandDataSub1GFreqRead(unsigned char* ProtocolFrameBodyDataBuffer)
+{
+    unsigned short Sub1GFreqR = 0;
+    unsigned char ConstructProtocolFrameBodyDataCount = 0;
+
+    //TODO: Read battery status function
+    Sub1GFreqR = 434;//Test
+    printf("%s - (line:%d) Sub1G freq is %d MHz .\n\r" , __FILE__, __LINE__, Sub1GFreqR);
+
+    ProtocolFrameBodyDataBuffer[ConstructProtocolFrameBodyDataCount++] = SUB1G_FREQ;
+    ProtocolFrameBodyDataBuffer[ConstructProtocolFrameBodyDataCount++] = 0x02;
+    memcpy(&(ProtocolFrameBodyDataBuffer[ConstructProtocolFrameBodyDataCount]), &Sub1GFreqR, 2);
+    ConstructProtocolFrameBodyDataCount += 2;
+
+    return ConstructProtocolFrameBodyDataCount;
+}
+
+//BATTERY_POWER
+char ProtocolFrameBodyCommandDataBatteryPowerRead(unsigned char* ProtocolFrameBodyDataBuffer)
+{
+    unsigned char BatteryPower = 0;
+    unsigned char ConstructProtocolFrameBodyDataCount = 0;
+
+    //TODO: Read battery status function
+    BatteryPower = 90;//Test
+    printf("%s - (line:%d) Read battery power is %d s .\n\r" , __FILE__, __LINE__, BatteryPower);
+
+    ProtocolFrameBodyDataBuffer[ConstructProtocolFrameBodyDataCount++] = BATTERY_POWER;
+    ProtocolFrameBodyDataBuffer[ConstructProtocolFrameBodyDataCount++] = 0x01;
+    ProtocolFrameBodyDataBuffer[ConstructProtocolFrameBodyDataCount++] = BatteryPower;
+
+    return ConstructProtocolFrameBodyDataCount;
+}
+
+//HEART_BEAT_TIME_INTERVAL
+char ProtocolFrameBodyHeartBeatIntervalRead(unsigned char* ProtocolFrameBodyDataBuffer)
+{
+    unsigned char HeartBeatInterval = 0;
+    unsigned char ConstructProtocolFrameBodyDataCount = 0;
+
+    //TODO: Read battery status function
+    HeartBeatInterval = 5;//Test
+    printf("%s - (line:%d) Heart beat interval is %d s .\n\r" , __FILE__, __LINE__, HeartBeatInterval);
+
+    ProtocolFrameBodyDataBuffer[ConstructProtocolFrameBodyDataCount++] = HEART_BEAT_TIME_INTERVAL;
+    ProtocolFrameBodyDataBuffer[ConstructProtocolFrameBodyDataCount++] = 0x01;
+    ProtocolFrameBodyDataBuffer[ConstructProtocolFrameBodyDataCount++] = HeartBeatInterval;
+
+    return ConstructProtocolFrameBodyDataCount;
+}
+
+char ProtocolFrameBodyHeartBeatIntervalWrite(unsigned char *ProtocolFrameBodyDataBuffer, unsigned char ProtocolFrameBodyDataLength)
+{
+    unsigned char HeartBeatInterval = 0;
+
+    if(ProtocolFrameBodyDataLength > 1)
+    {
+        printf("Error: HEART_BEAT_OVERTIME command length %d error, should be %d . \n\r", ProtocolFrameBodyDataLength, 1);
+        return -1;
+    }
+
+    HeartBeatInterval = *ProtocolFrameBodyDataBuffer;
+    printf("Write heart beat interval is %d s .\n\r" , HeartBeatInterval);
+
+    //TODO: Write heart beat interval function
 
     return 0;
 }
 
 //HEART_BEAT_OVERTIME
-char  ProtocolBodyHeartBeatOverTimeControl(unsigned char *DataBuffer, unsigned char DataLength)
+char ProtocolFrameBodyHeartBeatOverTimeRead(unsigned char* ProtocolFrameBodyDataBuffer)
+{
+    unsigned char HeartBeatOverTime = 0;
+    unsigned char ConstructProtocolFrameBodyDataCount = 0;
+
+    //TODO: Read heart beat over time function
+    HeartBeatOverTime = 8;//Test
+    printf("%s - (line:%d) Heart beat over time is %d s .\n\r" , __FILE__, __LINE__, HeartBeatOverTime);
+
+    ProtocolFrameBodyDataBuffer[ConstructProtocolFrameBodyDataCount++] = HEART_BEAT_OVERTIME;
+    ProtocolFrameBodyDataBuffer[ConstructProtocolFrameBodyDataCount++] = 0x01;
+    ProtocolFrameBodyDataBuffer[ConstructProtocolFrameBodyDataCount++] = HeartBeatOverTime;
+
+    return ConstructProtocolFrameBodyDataCount;
+}
+
+char ProtocolFrameBodyHeartBeatOverTimeWrite(unsigned char *ProtocolFrameBodyDataBuffer, unsigned char ProtocolFrameBodyDataLength)
 {
     unsigned char HeartBeatOverTime = 0;
 
-    if(DataLength > 1)
+    if(ProtocolFrameBodyDataLength > 1)
     {
-        printf("Error: HEART_BEAT_OVERTIME command length %d error, should be %d . \n\r", DataLength, 1);
+        printf("Error: HEART_BEAT_OVERTIME command length %d error, should be %d . \n\r", ProtocolFrameBodyDataLength, 1);
         return -1;
     }
 
-    HeartBeatOverTime = *DataBuffer;
+    HeartBeatOverTime = *ProtocolFrameBodyDataBuffer;
 
-#ifdef DEBUG_TEST_FLAG
-    printf("Setting branch lock heart beat over time is %d s .\n\r" , HeartBeatOverTime);
-#endif
+    printf("Write heart beat interval is %d s .\n\r" , HeartBeatOverTime);
 
-    //TODO: Set branch lock heart beat over time to data struct or data base
+    //TODO: Write heart beat overtime function
 
     return 0;
 }
 
 //BIND_LOCK_CONTROL
-char  ProtocolBodyBindLockControl(unsigned char *DataBuffer, unsigned char DataLength)
+char ProtocolFrameBodyBindLockWrite(unsigned char *ProtocolFrameBodyDataBuffer, unsigned char ProtocolFrameBodyDataLength)
 {
-    unsigned char LockControl_UUID[UUID_LENGTH] = {0};
-
-    if(DataLength > UUID_LENGTH)
+    if(ProtocolFrameBodyDataLength > UUID_LENGTH)
     {
-        printf("Error: BIND_LOCK_CONTROL command length %d error, should be %d . \n\r", DataLength, UUID_LENGTH);
+        printf("Error: BIND_LOCK_CONTROL command length %d error, should be %d . \n\r", ProtocolFrameBodyDataLength, UUID_LENGTH);
         return -1;
     }
 
-    memcpy(LockControl_UUID, DataBuffer, DataLength);
+    memcpy(LockControl_UUID, ProtocolFrameBodyDataBuffer, ProtocolFrameBodyDataLength);
 
-#ifdef DEBUG_TEST_FLAG
     printf("%s - (line:%d)\n",__FILE__,__LINE__);
-    printf(" =====>>> Bing to branch lock UUID .\n\r");
+    printf(" =====>>> Branch lock bind to lock control's UUID : \n\r");
     HexDump(LockControl_UUID, UUID_LENGTH);
-#endif
 
     //TODO: Set branch lock bind uuid to data struct or data base
 
@@ -132,22 +280,18 @@ char  ProtocolBodyBindLockControl(unsigned char *DataBuffer, unsigned char DataL
 }
 
 //UNBIND_LOCK_CONTROL
-char  ProtocolBodyUnBindLockControl(unsigned char *DataBuffer, unsigned char DataLength)
+char ProtocolFrameBodyUnBindLockWrite(unsigned char *ProtocolFrameBodyDataBuffer, unsigned char ProtocolFrameBodyDataLength)
 {
-    unsigned char LockControl_UUID[UUID_LENGTH] = {0};
-
-    if(DataLength > UUID_LENGTH)
+    if(ProtocolFrameBodyDataLength > UUID_LENGTH)
     {
-        printf("Error: UNBIND_LOCK_CONTROL command length %d error, should be %d . \n\r", DataLength, UUID_LENGTH);
+        printf("Error: UNBIND_LOCK_CONTROL command length %d error, should be %d . \n\r", ProtocolFrameBodyDataLength, UUID_LENGTH);
         return -1;
     }
+    memcpy(LockControl_UUID, ProtocolFrameBodyDataBuffer, ProtocolFrameBodyDataLength);
 
-    memcpy(LockControl_UUID, DataBuffer, DataLength);
-
-#ifdef DEBUG_TEST_FLAG
     printf("%s - (line:%d)\n",__FILE__,__LINE__);
+    printf(" =====>>> Branch lock unbind to lock control's UUID : \n\r");
     HexDump(LockControl_UUID, UUID_LENGTH);
-#endif
 
     //TODO: Set branch lock unbind uuid to data struct or data base
 
@@ -155,210 +299,210 @@ char  ProtocolBodyUnBindLockControl(unsigned char *DataBuffer, unsigned char Dat
 }
 
 // Init protocol module
-void ProtocolBodyCommandReadWriteFunctionRegister(void)
+void ProtocolFrameBodyCommandCodeWriteAndReadFunctionRegister(void)
 {
-    memset(&ProtocolBodyCommandReadWriteFunctionRegisterArray, 0x0, sizeof(ProtocolBodyCommandReadWriteFunctionRegisterArray));
+    memset(&ProtocolFrameBodyCommandCodeWriteAndReadFunctionRegisterArray, 0x0, sizeof(ProtocolFrameBodyCommandCodeWriteAndReadFunctionRegisterArray));
+
+    //AUTHORIZE_STATUS
+    ProtocolBodyCommandRegister(AUTHORIZE_STATUS, ProtocolFrameBodyAuthorizeRead, ProtocolFrameBodyAuthorizeWrite);
+
+    //LOCK_STATUS
+    ProtocolBodyCommandRegister(LOCK_STATUS, ProtocolFrameBodyLockRead, ProtocolFrameBodyLockWrite);
+
+    //SEAL_STATUS
+    ProtocolBodyCommandRegister(SEAL_STATUS, ProtocolFrameBodySealRead, ProtocolFrameBodySealWrite);
+
+    //SUB1G_FREQ
+    ProtocolBodyCommandRegister(SUB1G_FREQ, ProtocolFrameBodyCommandDataSub1GFreqRead,NULL);
 
     //BATTERY_POWER
-    ProtocolBodyCommandRegister(BATTERY_POWER, ProtocolBodyBatteryPowerStatus,NULL);
+    ProtocolBodyCommandRegister(BATTERY_POWER, ProtocolFrameBodyCommandDataBatteryPowerRead,NULL);
 
     //HEART_BEAT_TIME_INTERVAL
-    ProtocolBodyCommandRegister(HEART_BEAT_TIME_INTERVAL, NULL, ProtocolBodyHeartBeatIntervalControl);
+    ProtocolBodyCommandRegister(HEART_BEAT_TIME_INTERVAL, ProtocolFrameBodyHeartBeatIntervalRead, ProtocolFrameBodyHeartBeatIntervalWrite);
 
     //HEART_BEAT_OVERTIME
-    ProtocolBodyCommandRegister(HEART_BEAT_OVERTIME, NULL, ProtocolBodyHeartBeatOverTimeControl);
+    ProtocolBodyCommandRegister(HEART_BEAT_OVERTIME, ProtocolFrameBodyHeartBeatOverTimeRead, ProtocolFrameBodyHeartBeatOverTimeWrite);
 
     //BIND_LOCK_CONTROL
-    ProtocolBodyCommandRegister(BIND_LOCK_CONTROL, NULL, ProtocolBodyBindLockControl);
+    ProtocolBodyCommandRegister(BIND_LOCK_CONTROL, NULL, ProtocolFrameBodyBindLockWrite);
 
     //UNBIND_LOCK_CONTROL
-    ProtocolBodyCommandRegister(UNBIND_LOCK_CONTROL, NULL, ProtocolBodyUnBindLockControl);
+    ProtocolBodyCommandRegister(UNBIND_LOCK_CONTROL, NULL, ProtocolFrameBodyUnBindLockWrite);
 
 }
 
-// Construct response
-char ConstructSendData(unsigned char* DataBuff, unsigned char DataLength, unsigned char HeaderType)
+// Construct protocol data
+char ConstructProtocolFrameData(unsigned char* ProtocolFrameBodyData, unsigned char ProtocolFrameBodyDataLength, unsigned char ProtocolFrameHeadType)
 {
-    unsigned char ConstructDataIndex = 0;
-    unsigned char ResponseDataBuffer[PROTOCOL_DATA_MAX_SIZE] = { 0 };
-    char result = -1;
-
-#ifdef DEBUG_TEST_FLAG
-    //UUID 96 bits
-    unsigned char UUID[UUID_LENGTH] = {0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x09,0x0a,0x0b,0x0c};
-#endif
+    unsigned char ConstructProtocolFrameDataCount = 0;
+    unsigned char ProtocolFrameData[PROTOCOL_FRAME_MAX_LENGTH] = { 0 };
+    char Result = -1;
 
     // Header type
-    if((HeaderType < SETTING_REQUEST) || (HeaderType > STATUS_ACK)){
-        printf("Error: Construct send data header type %d error ! \n\r", HeaderType);
-        return result;
+    if((ProtocolFrameHeadType < SETTING_REQUEST) || (ProtocolFrameHeadType > STATUS_ACK)){
+        printf("Error: Construct protocol frame header type %d error ! \n\r", ProtocolFrameHeadType);
+        return Result;
     }
-    ResponseDataBuffer[ConstructDataIndex++] = HeaderType;
+    ProtocolFrameData[ConstructProtocolFrameDataCount++] = ProtocolFrameHeadType;
 
     // Send to UUID
     //TODO: Use MCU hal lib get the real uuid
-    memcpy(ResponseDataBuffer + ConstructDataIndex, UUID, UUID_LENGTH);
-    ConstructDataIndex += UUID_LENGTH;
+    memcpy(ProtocolFrameData + ConstructProtocolFrameDataCount, LockControl_UUID, UUID_LENGTH);
+    ConstructProtocolFrameDataCount += UUID_LENGTH;
 
     // 加密标识
-    ResponseDataBuffer[ConstructDataIndex++] = 0x00;
+    ProtocolFrameData[ConstructProtocolFrameDataCount++] = 0x00;
 
     // 协议版本
-    ResponseDataBuffer[ConstructDataIndex++] = PROTOCOL_VERSION;
+    ProtocolFrameData[ConstructProtocolFrameDataCount++] = PROTOCOL_VERSION;
 
     // 帧体长度
-    ResponseDataBuffer[ConstructDataIndex++] = DataLength;
+    ProtocolFrameData[ConstructProtocolFrameDataCount++] = ProtocolFrameBodyDataLength;
 
-    // Send body data
-    if( (DataLength + PROTOCOL_HEADER_TYPE_LENGTH + UUID_LENGTH + CRC_DATA_LENGTH) >  PROTOCOL_DATA_MAX_SIZE)
+    // Protocol frame body data
+    if((ProtocolFrameBodyDataLength + PROTOCOL_FRAME_HEAD_LENGTH + PROTOCOL_FRAME_TAIL_CRC_LENGTH) >  PROTOCOL_FRAME_MAX_LENGTH)
     {
-        printf("Error: Construct send data length %d error ! \n\r", DataLength);
-        return result;
+        printf("Error: Construct protocol frame length %d error ! \n\r", ProtocolFrameBodyDataLength);
+        return Result;
     }
-    memcpy(ResponseDataBuffer + ConstructDataIndex, DataBuff, DataLength);
-    ConstructDataIndex += DataLength;
+    memcpy(ProtocolFrameData + ConstructProtocolFrameDataCount, ProtocolFrameBodyData, ProtocolFrameBodyDataLength);
+    ConstructProtocolFrameDataCount += ProtocolFrameBodyDataLength;
 
-    // CRC
-    unsigned short CRC = Crc16_CCITT(DataBuff, DataLength);
-#if 0
-    memcpy(ResponseDataBuffer + ConstructDataIndex, (unsigned char*)(&CRC), CRC_DATA_LENGTH);
-    ConstructDataIndex += CRC_DATA_LENGTH;
-#else
-    ResponseDataBuffer[ConstructDataIndex++] = CRC >> 8;
-    ResponseDataBuffer[ConstructDataIndex++] = CRC & 0x00FF;
-#endif
+    // Construct protocol frame body CRC
+    unsigned short CRC = Crc16_CCITT(ProtocolFrameBodyData, ProtocolFrameBodyDataLength);
+    ProtocolFrameData[ConstructProtocolFrameDataCount++] = CRC >> 8;
+    ProtocolFrameData[ConstructProtocolFrameDataCount++] = CRC & 0x00FF;
 
-    printf("Construct send data CRC is 0x%X . \n\r", CRC);
-    printf("Construct data index is %d . \n\r", ConstructDataIndex);
+    printf("%s - (line:%d) Construct protocol frame body CRC is 0x%X . \n\r", __FILE__, __LINE__, CRC);
+    printf("%s - (line:%d) Protocol frame body length is %d . \n\r", __FILE__, __LINE__, ProtocolFrameBodyDataLength);
 
 #ifdef DEBUG_TEST_FLAG
     printf("%s - (line:%d)\n",__FILE__,__LINE__);
-    printf("  ------- Response hex dump -------  \n\r");
-    HexDump(ResponseDataBuffer, ConstructDataIndex);
+    printf("  ------- Construct protocol frame hex dump -------  \n\r");
+    HexDump(ProtocolFrameData, ConstructProtocolFrameDataCount);
 #endif
 
     //TODO: Call real send function for different ways
 }
 
 
-// Sub parse protocol
-char GetProtocolBodyCommandReadWriteFunctionRegisterArrayIndex(enum CommandCode ParaCode)
+// Protocol frame body parse
+char GetProtocolBodyCommandReadWriteFunctionRegisterArrayIndex(enum ProtocolFrameBodyCommandCodeEnum ProtocolFrameBodyCommandCode)
 {
-    unsigned char i = 0;
-    for(i = 0; i < PROTOCOL_BODY_COMMAND_REGISTER_MAX_NUM; i++)
+    unsigned char Index = 0;
+    for(Index = 0; Index < PROTOCOL_FRAME_BODY_COMMAND_REGISTER_MAX_NUM; Index++)
     {
-        if(ProtocolBodyCommandReadWriteFunctionRegisterArray[i].FrameBody_CommandCode == ParaCode){
+        if(ProtocolFrameBodyCommandCodeWriteAndReadFunctionRegisterArray[Index].ProtocolFrameBodyCommandCode == ProtocolFrameBodyCommandCode){
             break;
         }
     }
-    if(i >= PROTOCOL_BODY_COMMAND_REGISTER_MAX_NUM){
-        i = -1;
+    if(Index >= PROTOCOL_FRAME_BODY_COMMAND_REGISTER_MAX_NUM){
+        Index = -1;
     }
-    return i;
+    return Index;
 }
 
-char SubProtocolBodyParseSettingRequest(unsigned char* DataBuff, unsigned char DataLength)
+char ProtocolFrameBodyParseSettingRequest(unsigned char* ProtocolFrameBodyData, unsigned char ProtocolFrameBodyLength)
 {
     char    Result = -1;
-    unsigned char   BodyDataBuffer[PROTOCOL_BODY_LENGTH] = { 0 };
-    unsigned char   ConstructBodyDataIndex = 0;
+    unsigned char   ConstructProtocolFrameBodyData[PROTOCOL_FRAME_BODY_MAX_LENGTH] = { 0 };
+    unsigned char   ConstructProtocolFrameBodyDataCount = 0;
 
-//#ifdef DEBUG_TEST_FLAG
-//    printf("%s - (line:%d)\n",__FILE__,__LINE__);
-//    HexDump(DataBuff, DataLength);
-//#endif
+#ifdef DEBUG_TEST_FLAG
+    printf("%s - (line:%d)\n",__FILE__,__LINE__);
+    printf("  ------- Receive setting request protocol frame body hex dump -------  \n\r");
+    HexDump(ProtocolFrameBodyData, ProtocolFrameBodyLength);
+#endif
 
-    unsigned char i = GetProtocolBodyCommandReadWriteFunctionRegisterArrayIndex(DataBuff[0]);;
-    if((i >= 0) && (ProtocolBodyCommandReadWriteFunctionRegisterArray[i].FrameBody_CommandCodeWriteFunction != NULL))
+    unsigned char i = GetProtocolBodyCommandReadWriteFunctionRegisterArrayIndex(ProtocolFrameBodyData[0]);// Command code
+    if((i >= 0) && (ProtocolFrameBodyCommandCodeWriteAndReadFunctionRegisterArray[i].ProtocolFrameBodyCommandCodeWriteFunctionPoint != NULL))
     {
-        Result = ProtocolBodyCommandReadWriteFunctionRegisterArray[i].FrameBody_CommandCodeWriteFunction(&DataBuff[1], DataLength-1);
+                                                                                                                                 // Command data            // Command data length
+        Result = ProtocolFrameBodyCommandCodeWriteAndReadFunctionRegisterArray[i].ProtocolFrameBodyCommandCodeWriteFunctionPoint(&ProtocolFrameBodyData[1], ProtocolFrameBodyLength-1);
     }
     else
     {
-        printf("Parse setting request command code (0x%04x) error !\n", DataBuff[1]);
+        printf("Parse setting request protocol frame body command code (0x%04x) error !\n", ProtocolFrameBodyData[1]);
     }
 
-    BodyDataBuffer[ConstructBodyDataIndex++] = DataBuff[0];
-    BodyDataBuffer[ConstructBodyDataIndex++] = Result;
+    ConstructProtocolFrameBodyData[ConstructProtocolFrameBodyDataCount++] = ProtocolFrameBodyData[0];// Command code
+    ConstructProtocolFrameBodyData[ConstructProtocolFrameBodyDataCount++] = Result;
 
-//#ifdef DEBUG_TEST_FLAG
-//    printf("%s - (line:%d)\n",__FILE__,__LINE__);
-//    HexDump(BodyDataBuffer, ConstructBodyDataIndex);
-//#endif
+#ifdef DEBUG_TEST_FLAG
+    printf("%s - (line:%d)\n",__FILE__,__LINE__);
+    printf("  ------- Sending setting ack protocol frame body hex dump -------  \n\r");
+    HexDump(ConstructProtocolFrameBodyData, ConstructProtocolFrameBodyDataCount);
+#endif
 
-    Result = ConstructSendData(BodyDataBuffer, ConstructBodyDataIndex, SETTING_ACK);
+    Result = ConstructProtocolFrameData(ConstructProtocolFrameBodyData, ConstructProtocolFrameBodyDataCount, SETTING_ACK);
 
     return Result;
 }
 
-char SubProtocolBodyParseGettingRequest(unsigned char* DataBuff, unsigned char DataLength)
+char ProtocolFrameBodyParseStatusRequest(unsigned char* ProtocolFrameBodyData, unsigned char ProtocolFrameBodyLength)
 {
     char    Result = -1;
-    unsigned char   BodyDataBuffer[PROTOCOL_BODY_LENGTH] = { 0 };
-    unsigned char   ConstructBodyDataIndex = 0;
+    unsigned char   ConstructProtocolFrameBodyData[PROTOCOL_FRAME_BODY_MAX_LENGTH] = { 0 };
 
 #ifdef DEBUG_TEST_FLAG
     printf("%s - (line:%d)\n",__FILE__,__LINE__);
-    HexDump(DataBuff, DataLength);
+    printf("  ------- Receive status request protocol frame body hex dump -------  \n\r");
+    HexDump(ProtocolFrameBodyData, ProtocolFrameBodyLength);
 #endif
-    if((DataLength < 1) || (DataLength > PROTOCOL_BODY_LENGTH)){
-        printf("Parse getting request data length %d error !\n\r", DataLength);
+
+    if((ProtocolFrameBodyLength < 1) || (ProtocolFrameBodyLength > PROTOCOL_FRAME_BODY_MAX_LENGTH)){
+        printf("Parse getting request data length %d error !\n\r", ProtocolFrameBodyLength);
         return Result;
     }
 
-    unsigned char i = GetProtocolBodyCommandReadWriteFunctionRegisterArrayIndex(DataBuff[0]);;
-    if((i >= 0) && (ProtocolBodyCommandReadWriteFunctionRegisterArray[i].FrameBody_CommandCodeReadFunction != NULL)){
-        Result = ProtocolBodyCommandReadWriteFunctionRegisterArray[i].FrameBody_CommandCodeReadFunction(&BodyDataBuffer[1]);
+    unsigned char i = GetProtocolBodyCommandReadWriteFunctionRegisterArrayIndex(ProtocolFrameBodyData[0]);;
+    if((i >= 0) && (ProtocolFrameBodyCommandCodeWriteAndReadFunctionRegisterArray[i].ProtocolFrameBodyCommandCodeReadFunctionPoint != NULL)){
+        Result = ProtocolFrameBodyCommandCodeWriteAndReadFunctionRegisterArray[i].ProtocolFrameBodyCommandCodeReadFunctionPoint(ConstructProtocolFrameBodyData);
     }
     else{
-        printf("Parse setting request command code (0x%04x) error !\n", DataBuff[1]);
+        printf("Parse status request command code (0x%04x) error !\n", ProtocolFrameBodyData[0]);
         return Result;
     }
 
-    BodyDataBuffer[ConstructBodyDataIndex++] = DataBuff[0];
-
 #ifdef DEBUG_TEST_FLAG
     printf("%s - (line:%d)\n",__FILE__,__LINE__);
-    HexDump(BodyDataBuffer, Result + PARA_CODE_LENGTH);
+    printf("  ------- Status ack protocol frame body hex dump -------  \n\r");
+    HexDump(ConstructProtocolFrameBodyData, Result);
 #endif
 
-    Result = ConstructSendData(BodyDataBuffer, Result + PARA_CODE_LENGTH, STATUS_ACK);
+    Result = ConstructProtocolFrameData(ConstructProtocolFrameBodyData, Result, STATUS_ACK);
 
     return Result;
 }
 
 // Parse protocol
-char ProtocolBodyParse(unsigned char* DataBuff, unsigned char DataLength, unsigned char HeaderType)
+char ProtocolFrameBodyParse(unsigned char* ProtocolFrameBodyData, unsigned char ProtocolFrameBodyLength, unsigned char ProtocolFrameHeadType)
 {
-    char result = -1;
+    char Result = -1;
 
-//#ifdef DEBUG_TEST_FLAG
-//    printf("%s - (line:%d)\n",__FILE__,__LINE__);
-//    HexDump(DataBuff, DataLength);
-//#endif
-
-    switch(HeaderType)
+    switch(ProtocolFrameHeadType)
     {
         case SETTING_REQUEST:
-            printf("Receive setting request command .\n\r");
-            result = SubProtocolBodyParseSettingRequest(DataBuff, DataLength);
+            printf("Parse setting request .\n\r");
+            Result = ProtocolFrameBodyParseSettingRequest(ProtocolFrameBodyData, ProtocolFrameBodyLength);
             break;
         case SETTING_ACK:
-            printf("Receive setting ack command .\n\r");
+            printf("Parse setting ack .\n\r");
             break;
         case STATUS_REQUEST:
-            printf("Receive status request command .\n\r");
-            result = SubProtocolBodyParseGettingRequest(DataBuff, DataLength);
-            result = 0;
+            printf("Parse status request .\n\r");
+            Result = ProtocolFrameBodyParseStatusRequest(ProtocolFrameBodyData, ProtocolFrameBodyLength);
+            Result = 0;
             break;
         case STATUS_ACK:
-            printf("Receive status ack command .\n\r");
-            result = 0;
+            printf("Parse status ack .\n\r");
+            Result = 0;
             break;
         default:
-            printf("Error: Receive error command 0x%X .\n\r" , HeaderType);
-            result = -1;
+            printf("Error: Receive error head type 0x%X .\n\r" , ProtocolFrameHeadType);
+            Result = -1;
             break;
     }
-    return result;
+    return Result;
 }

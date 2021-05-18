@@ -14,6 +14,13 @@
 
 // Functions
 
+#ifdef DEBUG_TEST_FLAG
+
+extern unsigned char BranchLock_UUID[UUID_LENGTH];
+
+#endif
+
+
 char  ProtocolDataParse(unsigned char *DataBuff, unsigned char DataLength)
 {
     unsigned char EncryptedFlag     = 0;
@@ -25,9 +32,9 @@ char  ProtocolDataParse(unsigned char *DataBuff, unsigned char DataLength)
     unsigned short  ReceiveCrcValue     = 0;
 
     // Check receive data length
-    if((DataLength < PROTOCOL_DATA_MIN_SIZE) || (DataLength > PROTOCOL_DATA_MAX_SIZE))
+    if((DataLength < PROTOCOL_FRAME_MIN_LENGTH) || (DataLength > PROTOCOL_FRAME_MAX_LENGTH))
     {
-        printf("Error: Protocol receive data length %d error ! \n\r", DataLength);
+        printf("Error: Parse protocol frame data length %d error ! \n\r", DataLength);
         return -1;
     }
 
@@ -46,19 +53,19 @@ char  ProtocolDataParse(unsigned char *DataBuff, unsigned char DataLength)
     // Check header dest device uuid
     /* Call UUID get function */
     /* Because self uuid can't change, so can save it as a global variable in this file*/
-#ifdef DEBUG_TEST_FLAG
-    //UUID 96 bits
-    unsigned char UUID[UUID_LENGTH] = {0x00,0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x09,0x0a,0x0b};
-#endif
+//#ifdef DEBUG_TEST_FLAG
+//    //UUID 96 bits
+//    unsigned char UUID[UUID_LENGTH] = {0x00,0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x09,0x0a,0x0b};
+//#endif
     /* End */
-    if(memcmp(UUID, &DataBuff[ProcessDataIndex], UUID_LENGTH) != 0)// 0:means equal
+    if(memcmp(BranchLock_UUID, &DataBuff[ProcessDataIndex], UUID_LENGTH) != 0)// 0:means equal
     {
         printf("Error: Protocol receive data dst uuid error ! \n\r");
 #ifdef DEBUG_TEST_FLAG
         unsigned char i =0;
         for(i=0; i<UUID_LENGTH; i++)
         {
-            printf("Debug: UUID[%d] = 0x%X : DataBuff[%d] = 0x%X .\n\r" , i, UUID[i], i, DataBuff[1+i]);
+            printf("Debug: UUID[%d] = 0x%X : DataBuff[%d] = 0x%X .\n\r" , i, BranchLock_UUID[i], i, DataBuff[1+i]);
         }
 #endif
         return -1;
@@ -75,11 +82,7 @@ char  ProtocolDataParse(unsigned char *DataBuff, unsigned char DataLength)
     /* ======================================================================================== */
 
     // Calculate CRC
-#ifdef DEBUG_TEST_FLAG
-    printf("%s - (line:%d)\n",__FILE__,__LINE__);
-    HexDump(&DataBuff[ProcessDataIndex], DataLength - CRC_DATA_LENGTH - FRAME_HEADER_LENGTH);
-#endif
-    CalculateCrcValue = Crc16_CCITT(&DataBuff[ProcessDataIndex], DataLength - CRC_DATA_LENGTH - FRAME_HEADER_LENGTH);
+    CalculateCrcValue = Crc16_CCITT(&DataBuff[ProcessDataIndex], DataLength - PROTOCOL_FRAME_TAIL_CRC_LENGTH - PROTOCOL_FRAME_HEAD_LENGTH);
     ProcessDataIndex += FrameBody_Length;
 
     ReceiveCrcValue = DataBuff[ProcessDataIndex];
@@ -96,5 +99,5 @@ char  ProtocolDataParse(unsigned char *DataBuff, unsigned char DataLength)
     }
 
     // Call frame body parse function
-    return ProtocolBodyParse(&DataBuff[FRAME_HEADER_LENGTH], FrameBody_Length, DataBuff[0]);
+    return ProtocolFrameBodyParse(&DataBuff[PROTOCOL_FRAME_HEAD_LENGTH], FrameBody_Length, DataBuff[0]);
 }

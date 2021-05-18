@@ -10,80 +10,78 @@
 // Macro
 #define PROTOCOL_VERSION 0x10
 
-#define PROTOCOL_BODY_COMMAND_REGISTER_MAX_NUM   30
+#define PROTOCOL_FRAME_BODY_COMMAND_REGISTER_MAX_NUM   30
 
-#define PROTOCOL_BODY_LENGTH 47
+#define PROTOCOL_FRAME_BODY_MAX_LENGTH 47
 
-#define PROTOCOL_HEADER_TYPE_LENGTH 1
+#define PROTOCOL_FRAME_HEAD_TYPE_LENGTH 1
 
-#define PROTOCOL_DATA_MAX_SIZE  64
+#define PROTOCOL_FRAME_HEAD_TYPE_INDEX 0
 
-#define PROTOCOL_DATA_MIN_SIZE  19
+#define PROTOCOL_FRAME_MAX_LENGTH  64
 
-#define FRAME_HEADER_LENGTH 16
+#define PROTOCOL_FRAME_MIN_LENGTH  19
 
-#define PARA_CODE_LENGTH 1
+#define PROTOCOL_FRAME_HEAD_LENGTH 16
 
-#define CRC_DATA_LENGTH 2
+#define PROTOCOL_FRAME_BODY_COMMAND_CODE_LENGTH 1
 
-//#define MASTER_DEVICE 0x00
-//#define SLAVE_DEVICE  0x01
-
-// Global variables
-//unsigned char software_version          = 0;
-//unsigned char heart_beat_time_interval  = 5;    //seconds
-//unsigned char heart_beat_overtime       = 15;   //seconds
-//unsigned int DeviceRole = SLAVE_DEVICE;
+#define PROTOCOL_FRAME_TAIL_CRC_LENGTH 2
 
 // Header type
-enum HeaderType{
-    SETTING_REQUEST = 0x88,
-    SETTING_ACK,
-    STATUS_REQUEST,
-    STATUS_ACK
+enum ProtocolFrameHeadType{
+    SETTING_REQUEST =   0x88,
+    SETTING_ACK,    //  0x89
+    STATUS_REQUEST, //  0x8a
+    STATUS_ACK      //  0x8b
 };
 
 // Command code
-enum CommandCode{
-    CONTROL_STATUS = 0x01,
-    LOCK_STATUS,
-    SEAL_STATUS,
-    SUB1G_FREQ,
-    BATTERY_POWER,
-    HEART_BEAT_TIME_INTERVAL,
-    HEART_BEAT_OVERTIME,
-    BIND_LOCK_CONTROL,
-    UNBIND_LOCK_CONTROL,
+enum ProtocolFrameBodyCommandCodeEnum{
+    AUTHORIZE_STATUS =              0x01,
+    LOCK_STATUS,                //  0x02
+    SEAL_STATUS,                //  0x03
+    SUB1G_FREQ,                 //  0x04
+    BATTERY_POWER,              //  0x05
+    HEART_BEAT_TIME_INTERVAL,   //  0x06
+    HEART_BEAT_OVERTIME,        //  0x07
+    BIND_LOCK_CONTROL,          //  0x08
+    UNBIND_LOCK_CONTROL,        //  0x09
+};
+
+//Control status
+enum AuthorizeStatus{
+    Authorize =      0x00,
+    Unauthorized //  0x01
 };
 
 //Lock status
 enum LockStatus{
-    LOCK = 0x00,
-    UNLOCK
+    Lock =      0x00,
+    Unlock  //  0x01
 };
 
 //Seal status
 enum SealStatus{
-    Seal = 0x00,
-    Unseal
+    Seal =      0x00,
+    Unseal //   0x01
 };
-
 
 // Struct
 typedef struct
 {
-    enum    CommandCode FrameBody_CommandCode;                              //protocol command code
-    char     (*FrameBody_CommandCodeReadFunction)(void*);                    //read function point
-    char     (*FrameBody_CommandCodeWriteFunction)(void*, unsigned long);    //write function point
-}ProtocolBodyCommandReadWriteFunctionPointStruct;
+    enum    ProtocolFrameBodyCommandCodeEnum ProtocolFrameBodyCommandCode;
+    char     (*ProtocolFrameBodyCommandCodeReadFunctionPoint)(void*);
+    char     (*ProtocolFrameBodyCommandCodeWriteFunctionPoint)(void*, unsigned long);
+}ProtocolFrameBodyCommandCodeWriteAndReadFunctionStruct;
 
-static ProtocolBodyCommandReadWriteFunctionPointStruct ProtocolBodyCommandReadWriteFunctionRegisterArray[PROTOCOL_BODY_COMMAND_REGISTER_MAX_NUM];
+static ProtocolFrameBodyCommandCodeWriteAndReadFunctionStruct ProtocolFrameBodyCommandCodeWriteAndReadFunctionRegisterArray[PROTOCOL_FRAME_BODY_COMMAND_REGISTER_MAX_NUM];
 
 // Functions
-void ProtocolBodyCommandReadWriteFunctionRegister(void);
+void ProtocolFrameBodyCommandCodeWriteAndReadFunctionRegister(void);
 
-char  ProtocolBodyParse(unsigned char* DataBuff, unsigned char DataLength, unsigned char HeaderType);
+char ProtocolFrameBodyParse(unsigned char* DataBuff, unsigned char DataLength, unsigned char ProtocolFrameHeadType);
 
-char  SubProtocolBodyParseSettingRequest(unsigned char* DataBuff, unsigned char DataLength);
+char ProtocolFrameBodyParseSettingRequest(unsigned char* DataBuff, unsigned char DataLength);
 
 #endif
