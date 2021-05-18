@@ -75,10 +75,10 @@ char  ProtocolDataParse(unsigned char *DataBuff, unsigned char DataLength)
     /* ======================================================================================== */
 
     // Calculate CRC
-//#ifdef DEBUG_TEST_FLAG
-//    printf("%s - (line:%d)\n",__FILE__,__LINE__);
-//    HexDump(&DataBuff[ProcessDataIndex], DataLength - CRC_DATA_LENGTH - FRAME_HEADER_LENGTH);
-//#endif
+#ifdef DEBUG_TEST_FLAG
+    printf("%s - (line:%d)\n",__FILE__,__LINE__);
+    HexDump(&DataBuff[ProcessDataIndex], DataLength - CRC_DATA_LENGTH - FRAME_HEADER_LENGTH);
+#endif
     CalculateCrcValue = Crc16_CCITT(&DataBuff[ProcessDataIndex], DataLength - CRC_DATA_LENGTH - FRAME_HEADER_LENGTH);
     ProcessDataIndex += FrameBody_Length;
 

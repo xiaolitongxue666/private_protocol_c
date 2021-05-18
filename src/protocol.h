@@ -22,12 +22,18 @@
 
 #define FRAME_HEADER_LENGTH 16
 
+#define PARA_CODE_LENGTH 1
+
 #define CRC_DATA_LENGTH 2
+
+//#define MASTER_DEVICE 0x00
+//#define SLAVE_DEVICE  0x01
 
 // Global variables
 //unsigned char software_version          = 0;
 //unsigned char heart_beat_time_interval  = 5;    //seconds
 //unsigned char heart_beat_overtime       = 15;   //seconds
+//unsigned int DeviceRole = SLAVE_DEVICE;
 
 // Header type
 enum HeaderType{

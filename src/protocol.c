@@ -34,6 +34,35 @@ char  ProtocolBodyCommandRegister(   enum    CommandCode ParaCode,
 }
 
 // Command functions
+//BATTERY_POWER
+char  ProtocolBodyBatteryPowerStatus(unsigned char* DataBuffer)
+{
+    unsigned char BatteryPower = 0;
+    unsigned char ConstructBodyDataIndex = 0;
+
+    //if(DataLength > 1)
+    //{
+    //    printf("Error: BATTERY_POWER command length %d error, should be %d . \n\r", DataLength, 1);
+    //    return -1;
+    //}
+
+    //TODO: Get battery status function
+    BatteryPower = 90;//Test
+
+#ifdef DEBUG_TEST_FLAG
+    printf("Getting battery status is %d s .\n\r" , BatteryPower);
+#endif
+
+    //TODO: Set branch lock heart beat interval to data struct or data base
+
+    //DataBuffer[ConstructBodyDataIndex++] = BATTERY_POWER;
+    DataBuffer[ConstructBodyDataIndex++] = 0x01;
+    DataBuffer[ConstructBodyDataIndex++] = BatteryPower;
+
+    return ConstructBodyDataIndex;
+}
+
+
 //HEART_BEAT_TIME_INTERVAL
 char  ProtocolBodyHeartBeatIntervalControl(unsigned char *DataBuffer, unsigned char DataLength)
 {
@@ -93,6 +122,7 @@ char  ProtocolBodyBindLockControl(unsigned char *DataBuffer, unsigned char DataL
 
 #ifdef DEBUG_TEST_FLAG
     printf("%s - (line:%d)\n",__FILE__,__LINE__);
+    printf(" =====>>> Bing to branch lock UUID .\n\r");
     HexDump(LockControl_UUID, UUID_LENGTH);
 #endif
 
@@ -129,6 +159,9 @@ void ProtocolBodyCommandReadWriteFunctionRegister(void)
 {
     memset(&ProtocolBodyCommandReadWriteFunctionRegisterArray, 0x0, sizeof(ProtocolBodyCommandReadWriteFunctionRegisterArray));
 
+    //BATTERY_POWER
+    ProtocolBodyCommandRegister(BATTERY_POWER, ProtocolBodyBatteryPowerStatus,NULL);
+
     //HEART_BEAT_TIME_INTERVAL
     ProtocolBodyCommandRegister(HEART_BEAT_TIME_INTERVAL, NULL, ProtocolBodyHeartBeatIntervalControl);
 
@@ -141,11 +174,10 @@ void ProtocolBodyCommandReadWriteFunctionRegister(void)
     //UNBIND_LOCK_CONTROL
     ProtocolBodyCommandRegister(UNBIND_LOCK_CONTROL, NULL, ProtocolBodyUnBindLockControl);
 
-
 }
 
 // Construct response
-char ConstructSendData(unsigned char* DataBuff, unsigned char DataLength, unsigned char HeaderType, unsigned char ParaCode)
+char ConstructSendData(unsigned char* DataBuff, unsigned char DataLength, unsigned char HeaderType)
 {
     unsigned char ConstructDataIndex = 0;
     unsigned char ResponseDataBuffer[PROTOCOL_DATA_MAX_SIZE] = { 0 };
@@ -201,6 +233,7 @@ char ConstructSendData(unsigned char* DataBuff, unsigned char DataLength, unsign
 
 #ifdef DEBUG_TEST_FLAG
     printf("%s - (line:%d)\n",__FILE__,__LINE__);
+    printf("  ------- Response hex dump -------  \n\r");
     HexDump(ResponseDataBuffer, ConstructDataIndex);
 #endif
 
@@ -253,7 +286,43 @@ char SubProtocolBodyParseSettingRequest(unsigned char* DataBuff, unsigned char D
 //    HexDump(BodyDataBuffer, ConstructBodyDataIndex);
 //#endif
 
-    Result = ConstructSendData(BodyDataBuffer, ConstructBodyDataIndex, SETTING_REQUEST, DataBuff[1]);
+    Result = ConstructSendData(BodyDataBuffer, ConstructBodyDataIndex, SETTING_ACK);
+
+    return Result;
+}
+
+char SubProtocolBodyParseGettingRequest(unsigned char* DataBuff, unsigned char DataLength)
+{
+    char    Result = -1;
+    unsigned char   BodyDataBuffer[PROTOCOL_BODY_LENGTH] = { 0 };
+    unsigned char   ConstructBodyDataIndex = 0;
+
+#ifdef DEBUG_TEST_FLAG
+    printf("%s - (line:%d)\n",__FILE__,__LINE__);
+    HexDump(DataBuff, DataLength);
+#endif
+    if((DataLength < 1) || (DataLength > PROTOCOL_BODY_LENGTH)){
+        printf("Parse getting request data length %d error !\n\r", DataLength);
+        return Result;
+    }
+
+    unsigned char i = GetProtocolBodyCommandReadWriteFunctionRegisterArrayIndex(DataBuff[0]);;
+    if((i >= 0) && (ProtocolBodyCommandReadWriteFunctionRegisterArray[i].FrameBody_CommandCodeReadFunction != NULL)){
+        Result = ProtocolBodyCommandReadWriteFunctionRegisterArray[i].FrameBody_CommandCodeReadFunction(&BodyDataBuffer[1]);
+    }
+    else{
+        printf("Parse setting request command code (0x%04x) error !\n", DataBuff[1]);
+        return Result;
+    }
+
+    BodyDataBuffer[ConstructBodyDataIndex++] = DataBuff[0];
+
+#ifdef DEBUG_TEST_FLAG
+    printf("%s - (line:%d)\n",__FILE__,__LINE__);
+    HexDump(BodyDataBuffer, Result + PARA_CODE_LENGTH);
+#endif
+
+    Result = ConstructSendData(BodyDataBuffer, Result + PARA_CODE_LENGTH, STATUS_ACK);
 
     return Result;
 }
@@ -276,10 +345,10 @@ char ProtocolBodyParse(unsigned char* DataBuff, unsigned char DataLength, unsign
             break;
         case SETTING_ACK:
             printf("Receive setting ack command .\n\r");
-            result =  0;
             break;
         case STATUS_REQUEST:
             printf("Receive status request command .\n\r");
+            result = SubProtocolBodyParseGettingRequest(DataBuff, DataLength);
             result = 0;
             break;
         case STATUS_ACK:
