@@ -8,16 +8,50 @@
 
 // Global variables
 #ifdef DEBUG_TEST_FLAG
-unsigned char LockControl_UUID[UUID_LENGTH] = {0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x09,0x0a,0x0b,0x0c};
+unsigned char LockControl_UUID[UUID_LENGTH] = {0x00,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01};
 #else
 unsigned char LockControl_UUID[UUID_LENGTH] = {0};
 #endif
 
 #ifdef DEBUG_TEST_FLAG
-unsigned char BranchLock_UUID[UUID_LENGTH] = {0x00,0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x09,0x0a,0x0b};
+unsigned char BranchLock_UUID[BRANCH_LOCK_MAX_NUM][UUID_LENGTH] =
+                                             {{0x00,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01,0x01},
+                                              {0x00,0x02,0x02,0x02,0x02,0x02,0x02,0x02,0x02,0x02,0x02,0x02},
+                                              {0x00,0x03,0x03,0x03,0x03,0x03,0x03,0x03,0x03,0x03,0x03,0x03},
+                                              {0x00,0x04,0x04,0x04,0x04,0x04,0x04,0x04,0x04,0x04,0x04,0x04},
+                                              {0x00,0x05,0x05,0x05,0x05,0x05,0x05,0x05,0x05,0x05,0x05,0x05},
+                                              {0x00,0x06,0x06,0x06,0x06,0x06,0x06,0x06,0x06,0x06,0x06,0x06},
+                                              {0x00,0x07,0x07,0x07,0x07,0x07,0x07,0x07,0x07,0x07,0x07,0x07},
+                                              {0x00,0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x08}};
+
+unsigned char CommunicateWithBranchLockIndex = 0;
+
+unsigned char BindBranchLockNum = 0;
+
+unsigned char ProtocolFrameLastRequestCommandCode = 0;
+
 #else
-unsigned char BranchLock_UUID[UUID_LENGTH] = {0};
+unsigned char BranchLock_UUID[BRANCH_LOCK_MAX_NUM][UUID_LENGTH] = {0};
+unsigned char CommunicateWithBranchLockIndex = 0;
 #endif
+
+// Set 'branch lock' uuid that can control by 'lock control'
+void WriteCommunicateWithBranchLockIndex(unsigned char Index)
+{
+    CommunicateWithBranchLockIndex = Index;
+}
+
+
+// Protocol frame last request command code
+void WriteProtocolFrameLastRequestCommandCode(unsigned char CommandCode)
+{
+    ProtocolFrameLastRequestCommandCode = CommandCode;
+}
+
+unsigned char ReadProtocolFrameLastRequestCommandCode(void)
+{
+    return ProtocolFrameLastRequestCommandCode;
+}
 
 
 // Register protocol command
@@ -352,7 +386,7 @@ char ConstructRequestProtocolFrameData(unsigned char* ProtocolFrameData, unsigne
     ProtocolFrameData[ConstructProtocolFrameDataCount++] = ProtocolFrameHeadType;
     // Send to UUID
     //TODO: Use MCU hal lib get the real uuid
-    memcpy(ProtocolFrameData + ConstructProtocolFrameDataCount, BranchLock_UUID, UUID_LENGTH);
+    memcpy(ProtocolFrameData + ConstructProtocolFrameDataCount, BranchLock_UUID[CommunicateWithBranchLockIndex], UUID_LENGTH);
     ConstructProtocolFrameDataCount += UUID_LENGTH;
 
     // ¼ÓÃÜ±êÊ¶
@@ -378,13 +412,21 @@ char ConstructRequestProtocolFrameData(unsigned char* ProtocolFrameData, unsigne
     ProtocolFrameData[ConstructProtocolFrameDataCount++] = CRC >> 8;
     ProtocolFrameData[ConstructProtocolFrameDataCount++] = CRC & 0x00FF;
 
-    printf("%s - (line:%d) Construct protocol frame body CRC is 0x%X . \n\r", __FILE__, __LINE__, CRC);
-    printf("%s - (line:%d) Protocol frame body length is %d . \n\r", __FILE__, __LINE__, ProtocolFrameBodyDataLength);
+    //Debug
+    //printf("%s - (line:%d) Construct protocol frame body CRC is 0x%X . \n\r", __FILE__, __LINE__, CRC);
+    //printf("%s - (line:%d) Protocol frame body length is %d . \n\r", __FILE__, __LINE__, ProtocolFrameBodyDataLength);
 
 #ifdef DEBUG_TEST_FLAG
-    printf("%s - (line:%d)\n",__FILE__,__LINE__);
-    printf("  ------- Construct protocol frame hex dump -------  \n\r");
+    //Test
+    printf("%s - (line:%d) ------- 'lock control' send request -------.\n\r" , __FILE__, __LINE__);
+
+    //Debug
+    //printf("%s - (line:%d) ------- Construct request protocol frame hex dump -------.\n\r" , __FILE__, __LINE__);
     HexDump(ProtocolFrameData, ConstructProtocolFrameDataCount);
+
+    //Parse construct frame
+    //printf("%s - (line:%d) Parse construct frame.\n\r" , __FILE__, __LINE__);
+    ProtocolDataParse(ProtocolFrameData, ConstructProtocolFrameDataCount);
 #endif
 
 }
@@ -431,13 +473,20 @@ char ConstructResponseProtocolFrameData(unsigned char* ProtocolFrameBodyData, un
     ProtocolFrameData[ConstructProtocolFrameDataCount++] = CRC >> 8;
     ProtocolFrameData[ConstructProtocolFrameDataCount++] = CRC & 0x00FF;
 
-    printf("%s - (line:%d) Construct protocol frame body CRC is 0x%X . \n\r", __FILE__, __LINE__, CRC);
-    printf("%s - (line:%d) Protocol frame body length is %d . \n\r", __FILE__, __LINE__, ProtocolFrameBodyDataLength);
+    //printf("%s - (line:%d) Construct protocol frame body CRC is 0x%X . \n\r", __FILE__, __LINE__, CRC);
+    //printf("%s - (line:%d) Protocol frame body length is %d . \n\r", __FILE__, __LINE__, ProtocolFrameBodyDataLength);
 
 #ifdef DEBUG_TEST_FLAG
-    printf("%s - (line:%d)\n",__FILE__,__LINE__);
-    printf("  ------- Construct protocol frame hex dump -------  \n\r");
+    //Test
+    printf("%s - (line:%d) ------- 'branch lock' send ack -------.\n\r" , __FILE__, __LINE__);
+
+    //Debug
+    //printf("%s - (line:%d) ------- Construct response protocol frame hex dump -------.\n\r" , __FILE__, __LINE__);
     HexDump(ProtocolFrameData, ConstructProtocolFrameDataCount);
+
+    //Parse construct frame
+    //printf("%s - (line:%d) Parse construct frame.\n\r" , __FILE__, __LINE__);
+    ProtocolDataParse(ProtocolFrameData, ConstructProtocolFrameDataCount);
 #endif
 
     //TODO: Call real send function for different ways
@@ -466,11 +515,10 @@ char ProtocolFrameBodyParseSettingRequest(unsigned char* ProtocolFrameBodyData, 
     unsigned char   ConstructProtocolFrameBodyData[PROTOCOL_FRAME_BODY_MAX_LENGTH] = { 0 };
     unsigned char   ConstructProtocolFrameBodyDataCount = 0;
 
-#ifdef DEBUG_TEST_FLAG
-    printf("%s - (line:%d)\n",__FILE__,__LINE__);
-    printf("  ------- Receive setting request protocol frame body hex dump -------  \n\r");
-    HexDump(ProtocolFrameBodyData, ProtocolFrameBodyLength);
-#endif
+//#ifdef DEBUG_TEST_FLAG
+//    printf("%s - (line:%d) ------- Receive setting request protocol frame body hex dump -------.\n\r" , __FILE__, __LINE__);
+//    HexDump(ProtocolFrameBodyData, ProtocolFrameBodyLength);
+//#endif
 
     unsigned char i = GetProtocolBodyCommandReadWriteFunctionRegisterArrayIndex(ProtocolFrameBodyData[0]);// Command code
     if((i >= 0) && (ProtocolFrameBodyCommandCodeWriteAndReadFunctionRegisterArray[i].ProtocolFrameBodyCommandCodeWriteFunctionPoint != NULL))
@@ -487,13 +535,39 @@ char ProtocolFrameBodyParseSettingRequest(unsigned char* ProtocolFrameBodyData, 
     ConstructProtocolFrameBodyData[ConstructProtocolFrameBodyDataCount++] = Result;
 
 #ifdef DEBUG_TEST_FLAG
-    printf("%s - (line:%d)\n",__FILE__,__LINE__);
-    printf("  ------- Sending setting ack protocol frame body hex dump -------  \n\r");
-    HexDump(ConstructProtocolFrameBodyData, ConstructProtocolFrameBodyDataCount);
+    //Debug
+    //printf("%s - (line:%d) ------- Construct setting ack protocol frame body hex dump -------\n\r" , __FILE__, __LINE__);
+    //HexDump(ConstructProtocolFrameBodyData, ConstructProtocolFrameBodyDataCount);
 #endif
 
     Result = ConstructResponseProtocolFrameData(ConstructProtocolFrameBodyData, ConstructProtocolFrameBodyDataCount, SETTING_ACK);
 
+    return Result;
+}
+
+char ProtocolFrameBodyParseSettingAck(unsigned char* ProtocolFrameBodyData, unsigned char ProtocolFrameBodyLength)
+{
+    char    Result = -1;
+
+#ifdef DEBUG_TEST_FLAG
+    printf("%s - (line:%d) ------- Receive setting ack protocol frame body hex dump -------.\n\r" , __FILE__, __LINE__);
+    HexDump(ProtocolFrameBodyData, ProtocolFrameBodyLength);
+#endif
+
+    if(ProtocolFrameBodyLength != PROTOCOL_SETTING_ACK_BODY_LENGTH)
+    {
+        printf("%s - (line:%d) Receive protocol frame setting ack body length %d error !\n\r" , __FILE__, __LINE__, ProtocolFrameBodyLength);
+        return Result;
+    }
+
+    //Debug
+    //printf("%s - (line:%d) Receive protocol frame setting ack body command code %d .\n\r" , __FILE__, __LINE__, *ProtocolFrameBodyData);
+    //printf("%s - (line:%d) Receive protocol frame setting ack body setting result [%s] .\n\r" , __FILE__, __LINE__, (*(ProtocolFrameBodyData + 1))>0?"Setting ack error":"Setting ack right");
+
+    if(*ProtocolFrameBodyData == ReadProtocolFrameLastRequestCommandCode())
+    {
+        Result = *(ProtocolFrameBodyData + 1);
+    }
     return Result;
 }
 
@@ -502,11 +576,11 @@ char ProtocolFrameBodyParseStatusRequest(unsigned char* ProtocolFrameBodyData, u
     char    Result = -1;
     unsigned char   ConstructProtocolFrameBodyData[PROTOCOL_FRAME_BODY_MAX_LENGTH] = { 0 };
 
-#ifdef DEBUG_TEST_FLAG
-    printf("%s - (line:%d)\n",__FILE__,__LINE__);
-    printf("  ------- Receive status request protocol frame body hex dump -------  \n\r");
-    HexDump(ProtocolFrameBodyData, ProtocolFrameBodyLength);
-#endif
+//#ifdef DEBUG_TEST_FLAG
+//    printf("%s - (line:%d)\n",__FILE__,__LINE__);
+//    printf("  ------- Receive status request protocol frame body hex dump -------  \n\r");
+//    HexDump(ProtocolFrameBodyData, ProtocolFrameBodyLength);
+//#endif
 
     if((ProtocolFrameBodyLength < 1) || (ProtocolFrameBodyLength > PROTOCOL_FRAME_BODY_MAX_LENGTH)){
         printf("Parse getting request data length %d error !\n\r", ProtocolFrameBodyLength);
@@ -522,14 +596,79 @@ char ProtocolFrameBodyParseStatusRequest(unsigned char* ProtocolFrameBodyData, u
         return Result;
     }
 
-#ifdef DEBUG_TEST_FLAG
-    printf("%s - (line:%d)\n",__FILE__,__LINE__);
-    printf("  ------- Status ack protocol frame body hex dump -------  \n\r");
-    HexDump(ConstructProtocolFrameBodyData, Result);
-#endif
+//#ifdef DEBUG_TEST_FLAG
+//    printf("%s - (line:%d)\n",__FILE__,__LINE__);
+//    printf("  ------- Status ack protocol frame body hex dump -------  \n\r");
+//    HexDump(ConstructProtocolFrameBodyData, Result);
+//#endif
 
     Result = ConstructResponseProtocolFrameData(ConstructProtocolFrameBodyData, Result, STATUS_ACK);
 
+    return Result;
+}
+
+char ProtocolFrameBodyParseStatusAck(unsigned char* ProtocolFrameBodyData, unsigned char ProtocolFrameBodyLength)
+{
+    char    Result = -1;
+
+#ifdef DEBUG_TEST_FLAG
+    printf("%s - (line:%d) ------- Receive status ack protocol frame body hex dump -------.\n\r" , __FILE__, __LINE__);
+    HexDump(ProtocolFrameBodyData, ProtocolFrameBodyLength);
+#endif
+
+    if(ProtocolFrameBodyLength > PROTOCOL_STATUS_ACK_BODY_LENGTH)
+    {
+        printf("%s - (line:%d) Receive protocol frame status ack body length %d error !\n\r" , __FILE__, __LINE__, ProtocolFrameBodyLength);
+        return Result;
+    }
+
+    //Debug
+    printf("%s - (line:%d) Receive protocol frame setting ack body command code %d .\n\r" , __FILE__, __LINE__, *ProtocolFrameBodyData);
+    printf("%s - (line:%d) Receive protocol frame setting ack body command data length %d .\n\r" , __FILE__, __LINE__, *(ProtocolFrameBodyData + 1));
+
+    if(*ProtocolFrameBodyData != ReadProtocolFrameLastRequestCommandCode())
+    {
+        printf("%s - (line:%d) Receive protocol frame status ack body command code %d error !\n\r" , __FILE__, __LINE__, *ProtocolFrameBodyData);
+        return Result;
+    }
+    else
+    {
+        unsigned char   TempChar = 0;
+        unsigned short  TempShort = 0;
+        unsigned char   TempArray[UUID_LENGTH] = {0};
+
+        switch(*ProtocolFrameBodyData) {
+            case AUTHORIZE_STATUS:
+                TempChar = *(ProtocolFrameBodyData + 2);
+                printf("%s - (line:%d) Receive protocol frame setting ack body command code AUTHORIZE_STATUS is %d .\n\r" , __FILE__, __LINE__, TempChar);
+                break;
+            case LOCK_STATUS:
+                TempChar = *(ProtocolFrameBodyData + 2);
+                printf("%s - (line:%d) Receive protocol frame setting ack body command code LOCK_STATUS is %d .\n\r" , __FILE__, __LINE__, TempChar);
+                break;
+            case SEAL_STATUS:
+                TempChar = *(ProtocolFrameBodyData + 2);
+                printf("%s - (line:%d) Receive protocol frame setting ack body command code SEAL_STATUS is %d .\n\r" , __FILE__, __LINE__, TempChar);
+                break;
+            case SUB1G_FREQ:
+                //TempChar = *(ProtocolFrameBodyData + 2);
+                memcpy(&TempShort, (ProtocolFrameBodyData + 2), 2);
+                printf("%s - (line:%d) Receive protocol frame setting ack body command code SUB1G_FREQ is %d .\n\r" , __FILE__, __LINE__, TempShort);
+                break;
+            case BATTERY_POWER:
+                TempChar = *(ProtocolFrameBodyData + 2);
+                printf("%s - (line:%d) Receive protocol frame setting ack body command code BATTERY_POWER is %d .\n\r" , __FILE__, __LINE__, TempChar);
+                break;
+            case HEART_BEAT_TIME_INTERVAL:
+                TempChar = *(ProtocolFrameBodyData + 2);
+                printf("%s - (line:%d) Receive protocol frame setting ack body command code HEART_BEAT_TIME_INTERVAL is %d .\n\r" , __FILE__, __LINE__, TempChar);
+                break;
+            case HEART_BEAT_OVERTIME:
+                TempChar = *(ProtocolFrameBodyData + 2);
+                printf("%s - (line:%d) Receive protocol frame setting ack body command code HEART_BEAT_OVERTIME is %d .\n\r" , __FILE__, __LINE__, TempChar);
+                break;
+        }
+    }
     return Result;
 }
 
@@ -541,23 +680,24 @@ char ProtocolFrameBodyParse(unsigned char* ProtocolFrameBodyData, unsigned char 
     switch(ProtocolFrameHeadType)
     {
         case SETTING_REQUEST:
-            printf("Parse setting request .\n\r");
+            printf("%s - (line:%d) Parse setting request .\n\r" , __FILE__, __LINE__);
             Result = ProtocolFrameBodyParseSettingRequest(ProtocolFrameBodyData, ProtocolFrameBodyLength);
             break;
         case SETTING_ACK:
-            printf("Parse setting ack .\n\r");
+            printf("%s - (line:%d) Parse setting ack .\n\r" , __FILE__, __LINE__);
+            Result = ProtocolFrameBodyParseSettingAck(ProtocolFrameBodyData, ProtocolFrameBodyLength);
             break;
         case STATUS_REQUEST:
-            printf("Parse status request .\n\r");
+            printf("%s - (line:%d) Parse status request .\n\r" , __FILE__, __LINE__);
             Result = ProtocolFrameBodyParseStatusRequest(ProtocolFrameBodyData, ProtocolFrameBodyLength);
             Result = 0;
             break;
         case STATUS_ACK:
-            printf("Parse status ack .\n\r");
-            Result = 0;
+            printf("%s - (line:%d) Parse status ack .\n\r" , __FILE__, __LINE__);
+            ProtocolFrameBodyParseStatusAck(ProtocolFrameBodyData, ProtocolFrameBodyLength);
             break;
         default:
-            printf("Error: Receive error head type 0x%X .\n\r" , ProtocolFrameHeadType);
+            printf("%s - (line:%d) Error: Receive error head type 0x%X .\n\r" , __FILE__, __LINE__,ProtocolFrameHeadType);
             Result = -1;
             break;
     }

@@ -12,13 +12,74 @@
 // Macro
 #define PROTOCOL_DATA_BUFFER_LENGTH 128
 
+
+// Global variables
+#ifdef DEBUG_TEST_FLAG
+
+extern unsigned char BranchLock_UUID[BRANCH_LOCK_MAX_NUM][UUID_LENGTH];
+extern unsigned char CommunicateWithBranchLockIndex;
+extern unsigned char BindBranchLockNum;
+
+#endif
+
 // Functions
+//Roles
+//enum Roles{
+//    LockControl =      0x00,
+//    BranchLock      //  0x01
+//};
+void ProtocolModuleInit(enum ProtocolRoles Roles)
+{
+    //Init protocol module register command
+    ProtocolFrameBodyCommandCodeWriteAndReadFunctionRegister();
 
 #ifdef DEBUG_TEST_FLAG
 
-extern unsigned char BranchLock_UUID[UUID_LENGTH];
+    //LockControl test
+    if(Roles == LockControl)
+    {
 
+        //Set to communicate with 'branch lock' index 0
+        //WriteCommunicateWithBranchLockIndex(1);
+
+        //AUTHORIZE_STATUS
+        //SendWriteAuthorizeStatusProtocolFrame(AUTHORIZE_STATUS);
+        //SendReadAuthorizeStatusProtocolFrame();
+
+        //LOCK_STATUS
+        //SendWriteLockStatusProtocolFrame(Lock);
+        //SendReadLockStatusProtocolFrame();
+
+        //SEAL_STATUS
+        //SendWriteSealStatusProtocolFrame(Seal);
+        //SendReadSealStatusProtocolFrame();
+
+        //SUB1G_FREQ
+        //SendReadSub1GFreqProtocolFrame();
+
+        //BATTERY_POWER
+        //SendReadBatteryPowerProtocolFrame();
+
+        //HEART_BEAT_TIME_INTERVAL
+        //SendWriteHeartBeatTimeIntervalProtocolFrame(5);
+        //SendReadHeartBeatTimeIntervalProtocolFrame();
+
+        //HEART_BEAT_OVERTIME
+        //SendWriteHeartBeatOverTimeProtocolFrame(8);
+        //SendReadHeartBeatOverTimeProtocolFrame();
+
+        //BIND_LOCK_CONTROL
+        //unsigned char Bind_UUID[UUID_LENGTH] = {0x00,0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x09,0x0a,0x0b};
+        //SendWriteBindProtocolFrame(Bind_UUID);
+
+        //UNBIND_LOCK_CONTROL
+        //unsigned char UnBind_UUID[UUID_LENGTH] = {0x00,0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x09,0x0a,0x0b};
+        //SendWriteUnBindProtocolFrame(UnBind_UUID);
+    }
 #endif
+
+}
+
 
 //AUTHORIZE_STATUS
 char SendReadAuthorizeStatusProtocolFrame(void)
@@ -26,6 +87,8 @@ char SendReadAuthorizeStatusProtocolFrame(void)
     unsigned char ProtocolFrameData[PROTOCOL_FRAME_MAX_LENGTH] = { 0 };
     char Result = -1;
     unsigned char ProtocolFrameBodyData = AUTHORIZE_STATUS;
+
+    WriteProtocolFrameLastRequestCommandCode(AUTHORIZE_STATUS);
 
     Result = ConstructRequestProtocolFrameData(ProtocolFrameData,
                                                PROTOCOL_FRAME_MAX_LENGTH,
@@ -40,13 +103,14 @@ char SendWriteAuthorizeStatusProtocolFrame(unsigned AuthorizeStatus)
     unsigned char ProtocolFrameData[PROTOCOL_FRAME_MAX_LENGTH] = { 0 };
     char Result = -1;
     unsigned char ProtocolFrameBodyData[2] = { 0 };
-    ProtocolFrameBodyData[0] = AuthorizeStatus;
-    ProtocolFrameBodyData[1] = Authorize;
+    ProtocolFrameBodyData[0] = AUTHORIZE_STATUS;
+    ProtocolFrameBodyData[1] = AuthorizeStatus;
 
+    WriteProtocolFrameLastRequestCommandCode(AUTHORIZE_STATUS);
 
     Result = ConstructRequestProtocolFrameData(ProtocolFrameData,
                                                PROTOCOL_FRAME_MAX_LENGTH,
-                                               &ProtocolFrameBodyData,
+                                               (unsigned char*)&ProtocolFrameBodyData,
                                                2,
                                                SETTING_REQUEST);
     return Result;
@@ -58,6 +122,8 @@ char SendReadLockStatusProtocolFrame(void)
     unsigned char ProtocolFrameData[PROTOCOL_FRAME_MAX_LENGTH] = { 0 };
     char Result = -1;
     unsigned char ProtocolFrameBodyData = LOCK_STATUS;
+
+    WriteProtocolFrameLastRequestCommandCode(LOCK_STATUS);
 
     Result = ConstructRequestProtocolFrameData(ProtocolFrameData,
                                                PROTOCOL_FRAME_MAX_LENGTH,
@@ -75,10 +141,11 @@ char SendWriteLockStatusProtocolFrame(unsigned LockStatus)
     ProtocolFrameBodyData[0] = LOCK_STATUS;
     ProtocolFrameBodyData[1] = LockStatus;
 
+    WriteProtocolFrameLastRequestCommandCode(LOCK_STATUS);
 
     Result = ConstructRequestProtocolFrameData(ProtocolFrameData,
                                                PROTOCOL_FRAME_MAX_LENGTH,
-                                               &ProtocolFrameBodyData,
+                                               (unsigned char*)&ProtocolFrameBodyData,
                                                2,
                                                SETTING_REQUEST);
     return Result;
@@ -90,6 +157,8 @@ char SendReadSealStatusProtocolFrame(void)
     unsigned char ProtocolFrameData[PROTOCOL_FRAME_MAX_LENGTH] = { 0 };
     char Result = -1;
     unsigned char ProtocolFrameBodyData = SEAL_STATUS;
+
+    WriteProtocolFrameLastRequestCommandCode(SEAL_STATUS);
 
     Result = ConstructRequestProtocolFrameData(ProtocolFrameData,
                                                PROTOCOL_FRAME_MAX_LENGTH,
@@ -107,10 +176,11 @@ char SendWriteSealStatusProtocolFrame(unsigned SealStatus)
     ProtocolFrameBodyData[0] = SEAL_STATUS;
     ProtocolFrameBodyData[1] = SealStatus;
 
+    WriteProtocolFrameLastRequestCommandCode(SEAL_STATUS);
 
     Result = ConstructRequestProtocolFrameData(ProtocolFrameData,
                                                PROTOCOL_FRAME_MAX_LENGTH,
-                                               &ProtocolFrameBodyData,
+                                               (unsigned char*)&ProtocolFrameBodyData,
                                                2,
                                                SETTING_REQUEST);
     return Result;
@@ -122,6 +192,8 @@ char SendReadSub1GFreqProtocolFrame(void)
     unsigned char ProtocolFrameData[PROTOCOL_FRAME_MAX_LENGTH] = { 0 };
     char Result = -1;
     unsigned char ProtocolFrameBodyData = SUB1G_FREQ;
+
+    WriteProtocolFrameLastRequestCommandCode(SUB1G_FREQ);
 
     Result = ConstructRequestProtocolFrameData(ProtocolFrameData,
                                                PROTOCOL_FRAME_MAX_LENGTH,
@@ -137,6 +209,8 @@ char SendReadBatteryPowerProtocolFrame(void)
     unsigned char ProtocolFrameData[PROTOCOL_FRAME_MAX_LENGTH] = { 0 };
     char Result = -1;
     unsigned char ProtocolFrameBodyData = BATTERY_POWER;
+
+    WriteProtocolFrameLastRequestCommandCode(BATTERY_POWER);
 
     Result = ConstructRequestProtocolFrameData(ProtocolFrameData,
                                                PROTOCOL_FRAME_MAX_LENGTH,
@@ -154,6 +228,8 @@ char SendReadHeartBeatTimeIntervalProtocolFrame(void)
     char Result = -1;
     unsigned char ProtocolFrameBodyData = HEART_BEAT_TIME_INTERVAL;
 
+    WriteProtocolFrameLastRequestCommandCode(HEART_BEAT_TIME_INTERVAL);
+
     Result = ConstructRequestProtocolFrameData(ProtocolFrameData,
                                                PROTOCOL_FRAME_MAX_LENGTH,
                                                &ProtocolFrameBodyData,
@@ -170,10 +246,11 @@ char SendWriteHeartBeatTimeIntervalProtocolFrame(unsigned HeartBeatTimeInterval)
     ProtocolFrameBodyData[0] = HEART_BEAT_TIME_INTERVAL;
     ProtocolFrameBodyData[1] = HeartBeatTimeInterval;
 
+    WriteProtocolFrameLastRequestCommandCode(HEART_BEAT_TIME_INTERVAL);
 
     Result = ConstructRequestProtocolFrameData(ProtocolFrameData,
                                                PROTOCOL_FRAME_MAX_LENGTH,
-                                               &ProtocolFrameBodyData,
+                                               (unsigned char*)&ProtocolFrameBodyData,
                                                2,
                                                SETTING_REQUEST);
     return Result;
@@ -185,6 +262,8 @@ char SendReadHeartBeatOverTimeProtocolFrame(void)
     unsigned char ProtocolFrameData[PROTOCOL_FRAME_MAX_LENGTH] = { 0 };
     char Result = -1;
     unsigned char ProtocolFrameBodyData = HEART_BEAT_OVERTIME;
+
+    WriteProtocolFrameLastRequestCommandCode(HEART_BEAT_OVERTIME);
 
     Result = ConstructRequestProtocolFrameData(ProtocolFrameData,
                                                PROTOCOL_FRAME_MAX_LENGTH,
@@ -202,10 +281,11 @@ char SendWriteHeartBeatOverTimeProtocolFrame(unsigned HeartBeatOverTime)
     ProtocolFrameBodyData[0] = HEART_BEAT_OVERTIME;
     ProtocolFrameBodyData[1] = HeartBeatOverTime;
 
+    WriteProtocolFrameLastRequestCommandCode(HEART_BEAT_OVERTIME);
 
     Result = ConstructRequestProtocolFrameData(ProtocolFrameData,
                                                PROTOCOL_FRAME_MAX_LENGTH,
-                                               &ProtocolFrameBodyData,
+                                               (unsigned char*)&ProtocolFrameBodyData,
                                                2,
                                                SETTING_REQUEST);
     return Result;
@@ -222,7 +302,7 @@ char SendWriteBindProtocolFrame(unsigned char *Bind_UUID)
 
     Result = ConstructRequestProtocolFrameData(ProtocolFrameData,
                                                PROTOCOL_FRAME_MAX_LENGTH,
-                                               &ProtocolFrameBodyData,
+                                               (unsigned char*)&ProtocolFrameBodyData,
                                                UUID_LENGTH + 1,
                                                SETTING_REQUEST);
     return Result;
@@ -239,7 +319,7 @@ char SendWriteUnBindProtocolFrame(unsigned char *UnBind_UUID)
 
     Result = ConstructRequestProtocolFrameData(ProtocolFrameData,
                                                PROTOCOL_FRAME_MAX_LENGTH,
-                                               &ProtocolFrameBodyData,
+                                               (unsigned char*)&ProtocolFrameBodyData,
                                                UUID_LENGTH + 1,
                                                SETTING_REQUEST);
     return Result;
@@ -282,14 +362,14 @@ char ProtocolDataParse(unsigned char *DataBuff, unsigned char DataLength)
 //    unsigned char UUID[UUID_LENGTH] = {0x00,0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x09,0x0a,0x0b};
 //#endif
     /* End */
-    if(memcmp(BranchLock_UUID, &DataBuff[ProcessDataIndex], UUID_LENGTH) != 0)// 0:means equal
+    if(memcmp(BranchLock_UUID[CommunicateWithBranchLockIndex], &DataBuff[ProcessDataIndex], UUID_LENGTH) != 0)// 0:means equal
     {
         printf("Error: Protocol receive data dst uuid error ! \n\r");
 #ifdef DEBUG_TEST_FLAG
         unsigned char i =0;
         for(i=0; i<UUID_LENGTH; i++)
         {
-            printf("Debug: UUID[%d] = 0x%X : DataBuff[%d] = 0x%X .\n\r" , i, BranchLock_UUID[i], i, DataBuff[1+i]);
+            printf("Debug: UUID[%d] = 0x%X : DataBuff[%d] = 0x%X .\n\r" , i, BranchLock_UUID[CommunicateWithBranchLockIndex][i], i, DataBuff[1+i]);
         }
 #endif
         return -1;

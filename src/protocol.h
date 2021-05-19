@@ -28,6 +28,15 @@
 
 #define PROTOCOL_FRAME_TAIL_CRC_LENGTH 2
 
+#define BRANCH_LOCK_MAX_NUM 8
+
+#define PROTOCOL_SETTING_ACK_BODY_LENGTH 2
+
+#define PROTOCOL_STATUS_ACK_BODY_LENGTH 14
+
+#define PROTOCOL_FRAME_SETTING_ACK_RIGHT 0
+#define PROTOCOL_FRAME_SETTING_ACK_ERROR 1
+
 // Header type
 enum ProtocolFrameHeadType{
     SETTING_REQUEST =   0x88,
@@ -47,6 +56,12 @@ enum ProtocolFrameBodyCommandCodeEnum{
     HEART_BEAT_OVERTIME,        //  0x07
     BIND_LOCK_CONTROL,          //  0x08
     UNBIND_LOCK_CONTROL,        //  0x09
+};
+
+//Roles
+enum ProtocolRoles{
+    LockControl =      0x00,
+    BranchLock      //  0x01
 };
 
 //Control status
@@ -80,8 +95,20 @@ static ProtocolFrameBodyCommandCodeWriteAndReadFunctionStruct ProtocolFrameBodyC
 // Functions
 void ProtocolFrameBodyCommandCodeWriteAndReadFunctionRegister(void);
 
+char ConstructRequestProtocolFrameData(unsigned char* ProtocolFrameData, unsigned char ProtocolFrameDataLength,unsigned char* ProtocolFrameBodyData, unsigned char ProtocolFrameBodyDataLength, unsigned char ProtocolFrameHeadType);
+
 char ProtocolFrameBodyParse(unsigned char* DataBuff, unsigned char DataLength, unsigned char ProtocolFrameHeadType);
 
 char ProtocolFrameBodyParseSettingRequest(unsigned char* DataBuff, unsigned char DataLength);
+
+char ProtocolFrameBodyParseSettingAck(unsigned char* ProtocolFrameBodyData, unsigned char ProtocolFrameBodyLength);
+
+char ProtocolFrameBodyParseStatusRequest(unsigned char* ProtocolFrameBodyData, unsigned char ProtocolFrameBodyLength);
+
+void WriteCommunicateWithBranchLockIndex(unsigned char Index);
+
+void WriteProtocolFrameLastRequestCommandCode(unsigned char CommandCode);
+
+unsigned char ReadProtocolFrameLastRequestCommandCode(void);
 
 #endif

@@ -6,8 +6,11 @@
 
 // Include
 #include <stdbool.h>
+#include "protocol.h"
 
 // Functions
+void ProtocolModuleInit(enum ProtocolRoles Roles );
+
 char  ProtocolDataParse(unsigned char *DataBuff, unsigned char DataLength);
 
 //AUTHORIZE_STATUS
