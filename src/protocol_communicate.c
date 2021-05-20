@@ -43,7 +43,7 @@ void ProtocolModuleInit(enum ProtocolRoles Roles)
         //WriteCommunicateWithBranchLockIndex(1);
 
         //AUTHORIZE_STATUS
-        //SendWriteAuthorizeStatusProtocolFrame(AUTHORIZE_STATUS);
+        SendWriteAuthorizeStatusProtocolFrame(AUTHORIZE_STATUS);
         //SendReadAuthorizeStatusProtocolFrame();
 
         //LOCK_STATUS
